@@ -56,6 +56,7 @@ const createMainWindow = () =>{
         autoHideMenuBar: true,
         frame:false,
         transparent:true,
+        skipTaskbar:true,
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
