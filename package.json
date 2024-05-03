@@ -1,0 +1,25 @@
+{
+  "name": "classtimetable",
+  "version": "1.0.0",
+  "description": "A Class Timetable App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexliu07/ClassTimetable.git"
+  },
+  "author": "alex",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexliu07/ClassTimetable/issues"
+  },
+  "homepage": "https://github.com/alexliu07/ClassTimetable#readme",
+  "devDependencies": {
+    "electron": "^30.0.1",
+    "electron-log": "^5.1.2",
+    "electron-store": "^8.2.0",
+    "electron-window-state": "^5.0.3"
+  }
+}

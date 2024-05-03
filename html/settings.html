@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="../css/materialicons.css">
+    <link rel="stylesheet" href="../css/material.indigo-pink.min.css">
+    <link rel="stylesheet" href="../css/settings.css">
+    <script defer src="../js/material.min.js"></script>
+</head>
+<body>
+    <div id="container">
+        <div id="controlBar">
+            <p id="title"></p>
+            <div id="windowControl">
+                <div id="minimize" class="controlBtn"></div>
+                <div id="close" class="controlBtn"></div>
+            </div>
+        </div>
+        <div id="menu">
+            <ul>
+                <li><p id="timeTable" class="menuBtn"></p></li>
+                <li><p id="general" class="menuBtn"></p></li>
+            </ul>
+        </div>
+        <div id="detailSetting">
+            <div id="timeTableSetting" class="setting">
+                <div id="showSchedule">
+                    <table class="mdl-data-table mdl-js-data-table">
+                        <tbody>
+                            <tr id="mon" class="row">
+                                <th id="mondayText"></th>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文aaaaaaaaaAA</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+                                <td class="classFrame mdl-data-table__cell--non-numeric">
+                                    <p class="classInfo">语文</p>
+                                    <p class="classInfo">08:00-08:40</p>
+                                </td>
+
+                            </tr>
+                            <tr id="tue" class="row">
+                                <th id="tuesdayText"></th>
+
+                            </tr>
+                            <tr id="wed" class="row">
+                                <th id="wednesdayText"></th>
+
+                            </tr>
+                            <tr id="thu" class="row">
+                                <th id="thursdayText"></th>
+
+                            </tr>
+                            <tr id="fri" class="row">
+                                <th id="fridayText"></th>
+
+                            </tr>
+                            <tr id="sat" class="row">
+                                <th id="saturdayText"></th>
+
+                            </tr>
+                            <tr id="sun" class="row">
+                                <th id="sundayText"></th>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <fieldset id="editSchedule" class="field">
+                    <legend id="editScheduleHint"></legend>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input edit" type="text" id="className">
+                        <label class="mdl-textfield__label editHint textLabel" for="className" id="classNameHint"></label>
+                    </div>
+                    <br>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input edit" type="time" id="startTime">
+                        <label class="mdl-textfield__label editHint textLabel" for="startTime" id="startTimeHint"></label>
+                    </div>
+                    <br>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input edit" type="time" id="endTime">
+                        <label class="mdl-textfield__label editHint textLabel" for="endTime" id="endTimeHint"></label>
+                    </div>
+                    <fieldset class="field" id="weekdaySel">
+                        <legend id="dayHint" class="editHint"></legend>
+                        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect weekday" for="monday">
+                            <input type="radio" id="monday" class="mdl-radio__button" name="weekday" value="1">
+                            <span id="mondayHint" class="mdl-radio__label editHint"></span>
+                        </label>
+                        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect weekday" for="tuesday">
+                            <input type="radio" id="tuesday" class="mdl-radio__button" name="weekday" value="2">
+                            <span id="tuesdayHint" class="mdl-radio__label editHint"></span>
+                        </label>
+                        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect weekday" for="wednesday">
+                            <input type="radio" id="wednesday" class="mdl-radio__button" name="weekday" value="3">
+                            <span id="wednesdayHint" class="mdl-radio__label editHint"></span>
+                        </label>
+                        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect weekday" for="thursday">
+                            <input type="radio" id="thursday" class="mdl-radio__button" name="weekday" value="4">
+                            <span id="thursdayHint" class="mdl-radio__label editHint"></span>
+                        </label>
+                        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect weekday" for="friday">
+                            <input type="radio" id="friday" class="mdl-radio__button" name="weekday" value="5">
+                            <span id="fridayHint" class="mdl-radio__label editHint"></span>
+                        </label>
+                        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect weekday" for="saturday">
+                            <input type="radio" id="saturday" class="mdl-radio__button" name="weekday" value="6">
+                            <span id="saturdayHint" class="mdl-radio__label editHint"></span>
+                        </label>
+                        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect weekday" for="sunday">
+                            <input type="radio" id="sunday" class="mdl-radio__button" name="weekday" value="7">
+                            <span id="sundayHint" class="mdl-radio__label editHint"></span>
+                        </label>
+                    </fieldset>
+                    <div id="options">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" id="editBtn"></button>
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" id="importBtn"></button>
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" id="exportBtn"></button>
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" id="delBtn"></button>
+                    </div>
+                </fieldset>
+            </div>
+            <div id="generalSetting" class="setting">
+                <div class="sideSetting" id="left">
+                    <fieldset id="switches" class="field">
+                        <legend id="switchHint"></legend>
+                        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="autostartSwitch">
+                            <input type="checkbox" id="autostartSwitch" class="mdl-switch__input">
+                            <span class="mdl-switch__label" id="autostartHint"></span>
+                        </label>
+                        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="dragSwitch">
+                            <input type="checkbox" id="dragSwitch" class="mdl-switch__input">
+                            <span class="mdl-switch__label" id="dragHint"></span>
+                        </label>
+                        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="topSwitch">
+                            <input type="checkbox" id="topSwitch" class="mdl-switch__input">
+                            <span class="mdl-switch__label" id="topHint"></span>
+                        </label>
+                    </fieldset>
+                    <fieldset id="selects" class="field">
+                        <legend id="selectsHint"></legend>
+                        <label for="langSel" id="langSelHint"></label>
+                        <select id="langSel" name="lang" class="sel">
+                            <option value="system" id="langDefault"></option>
+                        </select>
+                        <label for="themeSel" id="themeSelHint"></label>
+                        <select id="themeSel" name="theme" class="sel">
+                            <option value="system" id="themeDefault"></option>
+                            <option value="light" id="lightHint"></option>
+                            <option value="dark" id="darkHint"></option>
+                        </select>
+                    </fieldset>
+                </div>
+                <div class="sideSetting" id="right">
+                    <fieldset id="about" class="field">
+                        <legend id="aboutHint"></legend>
+                        <p id="versionHint"></p>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/settings.js"></script>
+</body>
+</html>
