@@ -36,5 +36,8 @@
   "languageSelect": "Select Language",
   "themeSelect": "Select Theme",
   "light": "Light",
-  "dark": "Dark"
+  "dark": "Dark",
+  "sthIsEmpty": "Content cannot be left blank",
+  "intersect": "Cross-time with other schedules is not allowed",
+  "sameTime": "The start time and end time cannot overlap"
 }

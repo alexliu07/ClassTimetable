@@ -28,7 +28,7 @@ hintText3n.innerHTML = translation['nextSchedule'];
 hintText3.innerHTML = translation['currentSchedule'];
 
 //刷新页面
-ipcRenderer.on("refresh", (event) => {location.reload()});
+ipcRenderer.on("refresh", () => {location.reload()});
 
 //允许拖动
 ipcRenderer.on('set-drag',(event,arg)=>{dragBar.style.webkitAppRegion = arg?'drag':'no-drag'})

@@ -22,14 +22,14 @@ const loadSettingP2 = ()=>{
     mainWin.webContents.send('set-drag',store.get('drag'));
 }
 // 获取版本
-const getVersion = ()=>{return JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json')))['version']}
+const getVersion = ()=>{return JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json')).toString())['version']}
 
 // 获取语言列表
 const getLanguageList = ()=>{
     let langs = [];
     const langFiles = fs.readdirSync(path.join(__dirname,'lang'));
     for(let i in langFiles){
-        const tmpLang = JSON.parse(fs.readFileSync(path.join(__dirname,'lang/'+langFiles[i])));
+        const tmpLang = JSON.parse(fs.readFileSync(path.join(__dirname,'lang/'+langFiles[i])).toString());
         langs.push({'name':tmpLang['languageName'],'id':langFiles[i].substring(0, langFiles[i].lastIndexOf("."))})
     }
     return langs;
@@ -43,7 +43,7 @@ const getLanguage = ()=>{
     return 'en-US';
 }
 // 获取翻译
-const getTranslation = (lang) =>{return JSON.parse(fs.readFileSync(path.join(__dirname, 'lang/' + lang + '.json')))}
+const getTranslation = (lang) =>{return JSON.parse(fs.readFileSync(path.join(__dirname, 'lang/' + lang + '.json')).toString())}
 
 // 创建主窗口
 const createMainWindow = () =>{
@@ -59,7 +59,6 @@ const createMainWindow = () =>{
         skipTaskbar:true,
         webPreferences: {
             nodeIntegration: true,
-            enableRemoteModule: true,
             contextIsolation: false,
         }
     })
@@ -73,19 +72,18 @@ const createMainWindow = () =>{
 const createSettingWindow = () =>{
     const win = new BrowserWindow({
         width:800,
-        height:800,
+        height:850,
         autoHideMenuBar: true,
         transparent:true,
         frame:false,
         webPreferences: {
             nodeIntegration: true,
-            enableRemoteModule: true,
             contextIsolation: false,
         }
     })
     win.setBackgroundMaterial("mica")
     win.loadFile(path.join(__dirname,'html/settings.html'))
-    // win.webContents.openDevTools({'mode':'detach'})
+    win.webContents.openDevTools({'mode':'detach'})
     return win;
 }
 app.whenReady().then(()=>{

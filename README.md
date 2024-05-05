@@ -30,7 +30,8 @@
 - 执行`npm run start`以运行程序
 ***
 ## 使用到的依赖库
-- 主程序：<a href="https://github.com/electron/electron">electron</a>
+- 主程序：<a href="https://github.com/electron/electron">Electron</a>
 - 日志记录：<a href="https://github.com/megahertz/electron-log">electron-log</a>
 - 数据存储：<a href="https://github.com/sindresorhus/electron-store">electron-store</a>
 - 窗口位置大小记忆：<a href="https://github.com/mawie81/electron-window-state">electron-window-state</a>
+- 网页样式美化：<a href="https://github.com/google/material-design-lite">Material Design Lite</a>

@@ -54,6 +54,7 @@ html,body{
 }
 ::-webkit-scrollbar {
     height: 8px;
+    width: 8px;
 }
 ::-webkit-scrollbar-track {
     background: transparent;
@@ -107,10 +108,7 @@ p{
     background-repeat: no-repeat;
     background-position: center;
 }
-.controlBtn:hover{
-
-    border-radius: 5px;
-}
+.controlBtn:hover{border-radius: 5px;}
 #menu{padding-top: 1vh}
 ul {
     list-style-type: none;
@@ -131,7 +129,9 @@ li p {
 }
 table{
     padding-top: 3vh;
-    margin: auto;
+    margin-top: 1vh;
+    margin-left: 1vw;
+    float: left;
 }
 th{
     padding-left: 2.5vw;
@@ -171,7 +171,6 @@ th{
     width:100vw;
     overflow: auto;
 }
-.mdl-textfield{padding: 2vh 0}
 .setting{display: none}
 #switches{
     width: 40vw;
@@ -212,3 +211,4 @@ th{
 }
 #left{float:left}
 #right{float:right}
+.classInfo{cursor: default}

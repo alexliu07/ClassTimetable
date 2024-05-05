@@ -36,5 +36,8 @@
   "languageSelect": "语言选择",
   "themeSelect": "主题选择",
   "light": "浅色",
-  "dark": "深色"
+  "dark": "深色",
+  "sthIsEmpty": "内容不能被留空",
+  "intersect": "不允许与其他日程交叉时间",
+  "sameTime": "开始时间和结束时间不能重合"
 }
