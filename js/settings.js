@@ -142,36 +142,25 @@ timeTable.onclick = function (){
     timeTable.style.backgroundColor = '#00000050';
     general.style.removeProperty('background-color');
 }
-general.onclick = function (){
-    if(page === 2)return;
+general.onclick = function () {
+    if (page === 2) return;
     page = 2;
-    ipcRenderer.sendSync('set-page',2);
+    ipcRenderer.sendSync('set-page', 2);
     timeTableSetting.style.display = 'none';
     generalSetting.style.display = 'block';
     general.style.backgroundColor = '#00000050';
     timeTable.style.removeProperty('background-color');
 }
 
-// 关闭及最小化窗口
-close.onclick = function (){ipcRenderer.sendSync('setting-window-control','close')}
-minimize.onclick = function (){ipcRenderer.sendSync('setting-window-control','minimize')}
-
-// 更换主题配色
-themeSel.onchange = function (){ipcRenderer.sendSync('change-theme',themeSel.options[themeSel.selectedIndex].value)}
-// 切换语言
-langSel.onchange = function (){
-    ipcRenderer.sendSync('set-language',langSel.options[langSel.selectedIndex].value);
-    location.reload();
-}
-// 窗口置顶
-topSwitch.onchange = function (){ipcRenderer.sendSync('set-top',topSwitch.checked)}
-// 允许拖动
-dragSwitch.onchange = function (){ipcRenderer.sendSync('set-drag',dragSwitch.checked)}
-// 开机启动
-autostartSwitch.onchange = function (){ipcRenderer.sendSync('set-autostart',autostartSwitch.checked)}
-
 // 编辑课程表
-let schedules = [[],[],[],[],[],[],[]];
+let schedules = [[],[],[],[],[],[],[]],curSel=-1;
+const getTimeStr = (time)=>{
+    // 将时间转为字符串
+    let TimeStrHt = String(time.getHours()),TimeStrMt = String(time.getMinutes());
+    let TimeStrHour = TimeStrHt.length === 1?"0" + TimeStrHt:TimeStrHt;
+    let TimeStrMinute = TimeStrMt.length === 1?"0" + TimeStrMt:TimeStrMt;
+    return TimeStrHour + ":" + TimeStrMinute;
+}
 const clearInput = ()=>{
     // 清除输入
     className.value = "";
@@ -212,7 +201,7 @@ const isCrossTime = (schedule,day)=>{
 }
 // 拆分日程
 const splitSchedule = (schedule)=>{return [{'name':schedule['name'],'sTime':schedule['sTime'],'eTime':new Date(1970,0,1,23,59)},{'name':schedule['name'],'sTime':new Date(1970,0,1,0,0),'eTime':schedule['eTime']}]}
-const createElement = (name,sTime,eTime)=>{
+const createElement = (name,sTime,eTime,day)=>{
     // 创建元素
     let tmpTd = document.createElement('td');
     tmpTd.className = 'classFrame mdl-data-table__cell--non-numeric';
@@ -224,7 +213,66 @@ const createElement = (name,sTime,eTime)=>{
     tmpTime.innerHTML = sTime + ' - ' + eTime;
     tmpTd.appendChild(tmpName);
     tmpTd.appendChild(tmpTime);
+    tmpTd.onclick = function (){
+        if(curSel === tmpTd){
+            // 取消选中
+            tmpTd.style.removeProperty('background-color');
+            clearInput();
+            curSel = -1;
+        }else{
+            // 将当前的取消选中
+            if(curSel !== -1){
+                curSel.style.removeProperty('background-color');
+                clearInput();
+            }
+            // 选中
+            tmpTd.style.backgroundColor = '#00000050';
+            className.value = name;
+            startTime.value = sTime;
+            endTime.value = eTime;
+            weekday[day].checked = true;
+            weekdayHint[day].classList.add('is-checked');
+            curSel = tmpTd;
+        }
+    }
     return tmpTd;
+}
+const addSchedule = (name,sTimeStr,eTimeStr,day)=>{
+    // 添加日程
+    // 验证留空
+    if(name === "" || sTimeStr === "" || eTimeStr === "" || day === undefined){
+        snackBarContainer.MaterialSnackbar.showSnackbar({message:translation['sthIsEmpty']});
+        __electronLog.info('Setting Timetable - Something is Empty');
+        return 1;
+    }
+    __electronLog.info('Setting Timetable - name:'+name+' sTime:'+sTimeStr+' eTime:'+eTimeStr+' day:'+day);
+    // 开始时间必须早于结束时间，或跨天显示
+    let sTime = new Date(1970,0,1,Number(sTimeStr.substring(0,sTimeStr.lastIndexOf(':'))),Number(sTimeStr.substring(sTimeStr.lastIndexOf(':')+1)));
+    let eTime = new Date(1970,0,1,Number(eTimeStr.substring(0,eTimeStr.lastIndexOf(':'))),Number(eTimeStr.substring(eTimeStr.lastIndexOf(':')+1)));
+    if(sTime - eTime === 0){
+        snackBarContainer.MaterialSnackbar.showSnackbar({message:translation['sameTime']});
+        __electronLog.info('Setting Timetable - Start time is the same as end time');
+        return 1;
+    }
+    let t = {'name':name,'sTime':sTime,'eTime':eTime};
+    // 存入数组并排序
+    if(sTime > eTime){
+        let tmpSchedule = splitSchedule(t);
+        __electronLog.info('Setting Timetable - Start time later than end time');
+        for(let j in tmpSchedule){
+            if(tmpSchedule[j]['sTime']-tmpSchedule[j]['eTime'] === 0)continue;
+            if(isCrossTime(tmpSchedule[j],day + j*1))return 1;
+            schedules[day + j*1].push({'name':tmpSchedule[j]['name'],'startTime':tmpSchedule[j]['sTime'],'endTime':tmpSchedule[j]['eTime'],'object':createElement(tmpSchedule[j]['name'],getTimeStr(tmpSchedule[j]['sTime']),getTimeStr(tmpSchedule[j]['eTime'],),day + j*1)});
+            schedules[day + j*1].sort(sortBy('startTime',1));
+            refreshSchedule(day+j*1);
+        }
+    }else{
+        if(isCrossTime(t,day))return 1;
+        schedules[day].push({'name':name,'startTime':sTime,'endTime':eTime,'object':createElement(name,sTimeStr,eTimeStr,day)});
+        schedules[day].sort(sortBy('startTime',1));
+        refreshSchedule(day);
+    }
+    return 0;
 }
 editBtn.onclick = function (){
     let name = className.value;
@@ -237,46 +285,24 @@ editBtn.onclick = function (){
             break;
         }
     }
-    // 验证留空
-    if(name === "" || sTimeStr === "" || eTimeStr === "" || day === undefined){
-        snackBarContainer.MaterialSnackbar.showSnackbar({message:translation['sthIsEmpty']});
-        __electronLog.info('Setting Timetable - Something is Empty');
-        return;
-    }
-    __electronLog.info('Setting Timetable - name:'+name+' sTime:'+sTimeStr+' eTime:'+eTimeStr+' day:'+day);
-    // 开始时间必须早于结束时间，或跨天显示
-    let sTime = new Date(1970,0,1,Number(sTimeStr.substring(0,sTimeStr.lastIndexOf(':'))),Number(sTimeStr.substring(sTimeStr.lastIndexOf(':')+1)));
-    let eTime = new Date(1970,0,1,Number(eTimeStr.substring(0,eTimeStr.lastIndexOf(':'))),Number(eTimeStr.substring(eTimeStr.lastIndexOf(':')+1)));
-    if(sTime - eTime === 0){
-        snackBarContainer.MaterialSnackbar.showSnackbar({message:translation['sameTime']});
-        __electronLog.info('Setting Timetable - Start time is the same as end time');
-        return;
-    }
-    let t = {'name':name,'sTime':sTime,'eTime':eTime};
-    // 存入数组并排序
-    if(sTime > eTime){
-        let tmpSchedule = splitSchedule(t);
-        __electronLog.info('Setting Timetable - Start time later than end time');
-        for(let j in tmpSchedule){
-            if(tmpSchedule[j]['sTime']-tmpSchedule[j]['eTime'] === 0)continue;
-            if(isCrossTime(tmpSchedule[j],day + j*1))return;
-            let sTimeStrHt = String(tmpSchedule[j]['sTime'].getHours()),sTimeStrMt = String(tmpSchedule[j]['sTime'].getMinutes());
-            let sTimeStrHour = sTimeStrHt.length === 1?"0" + sTimeStrHt:sTimeStrHt;
-            let sTimeStrMinute = sTimeStrMt.length === 1?"0" + sTimeStrMt:sTimeStrMt;
-            let sTimeStr = sTimeStrHour + ":" + sTimeStrMinute;
-            let eTimeStrHt = String(tmpSchedule[j]['eTime'].getHours()),eTimeStrMt = String(tmpSchedule[j]['eTime'].getMinutes());
-            let eTimeStrHour = eTimeStrHt.length === 1?"0" + eTimeStrHt:eTimeStrHt;
-            let eTimeStrMinute = eTimeStrMt.length === 1?"0" + eTimeStrMt:eTimeStrMt;
-            let eTimeStr = eTimeStrHour + ":" + eTimeStrMinute;
-            schedules[day + j*1].push({'name':tmpSchedule[j]['name'],'startTime':tmpSchedule[j]['sTime'],'endTime':tmpSchedule[j]['eTime'],'object':createElement(tmpSchedule[j]['name'],sTimeStr,eTimeStr)});
-            schedules[day + j*1].sort(sortBy('startTime',1));
-            refreshSchedule(day+j*1);
-        }
-    }else{
-        if(isCrossTime(t,day))return;
-        schedules[day].push({'name':name,'startTime':sTime,'endTime':eTime,'object':createElement(name,sTimeStr,eTimeStr)});
-        schedules[day].sort(sortBy('startTime',1));
-        refreshSchedule(day);
-    }
+    if(addSchedule(name,sTimeStr,eTimeStr,day))return;
     clearInput();
 }
+
+// 关闭及最小化窗口
+close.onclick = function (){ipcRenderer.sendSync('setting-window-control','close')}
+minimize.onclick = function (){ipcRenderer.sendSync('setting-window-control','minimize')}
+
+// 更换主题配色
+themeSel.onchange = function (){ipcRenderer.sendSync('change-theme',themeSel.options[themeSel.selectedIndex].value)}
+// 切换语言
+langSel.onchange = function (){
+    ipcRenderer.sendSync('set-language',langSel.options[langSel.selectedIndex].value);
+    location.reload();
+}
+// 窗口置顶
+topSwitch.onchange = function (){ipcRenderer.sendSync('set-top',topSwitch.checked)}
+// 允许拖动
+dragSwitch.onchange = function (){ipcRenderer.sendSync('set-drag',dragSwitch.checked)}
+// 开机启动
+autostartSwitch.onchange = function (){ipcRenderer.sendSync('set-autostart',autostartSwitch.checked)}
