@@ -1,4 +1,4 @@
-const { ipcRenderer} = require("electron");
+const {ipcRenderer} = require("electron");
 
 // 注册组件
 // 文本相关
@@ -28,7 +28,11 @@ hintText3n.innerHTML = translation['nextSchedule'];
 hintText3.innerHTML = translation['currentSchedule'];
 
 //刷新页面
-ipcRenderer.on("refresh", () => {location.reload()});
+ipcRenderer.on("refresh", () => {
+    location.reload()
+});
 
 //允许拖动
-ipcRenderer.on('set-drag',(event,arg)=>{dragBar.style.webkitAppRegion = arg?'drag':'no-drag'})
+ipcRenderer.on('set-drag', (event, arg) => {
+    dragBar.style.webkitAppRegion = arg ? 'drag' : 'no-drag'
+})

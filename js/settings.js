@@ -1,4 +1,4 @@
-const { ipcRenderer} = require("electron");
+const {ipcRenderer} = require("electron");
 
 // 注册组件
 // 文本相关
@@ -54,6 +54,9 @@ const topSwitch = document.getElementById('topSwitch');
 const dragSwitch = document.getElementById('dragSwitch');
 const autostartSwitch = document.getElementById('autostartSwitch');
 // 编辑课程表相关
+const classNameContainer = document.getElementById('classNameContainer');
+const startTimeContainer = document.getElementById('startTimeContainer');
+const endTimeContainer = document.getElementById('endTimeContainer');
 const className = document.getElementById('className');
 const startTime = document.getElementById('startTime');
 const endTime = document.getElementById('endTime');
@@ -100,7 +103,7 @@ aboutHint.innerHTML = translation['about'];
 // 获取并显示语言列表
 let languages = ipcRenderer.sendSync('get-languages');
 let langList = [];
-for(let i in languages){
+for (let i in languages) {
     let tmpLang = document.createElement('option');
     tmpLang.value = languages[i]['id'];
     tmpLang.innerHTML = languages[i]['name'];
@@ -110,33 +113,33 @@ for(let i in languages){
 
 // 获取并显示程序版本
 let version = ipcRenderer.sendSync('get-version');
-versionHint.innerHTML = 'Class Timetable '+String(version);
+versionHint.innerHTML = 'Class Timetable ' + String(version);
 
 // 获取并显示设置内容
 autostartSwitch.checked = ipcRenderer.sendSync('get-autostart');
 dragSwitch.checked = ipcRenderer.sendSync('get-drag');
 topSwitch.checked = ipcRenderer.sendSync('get-top');
 let targetLang = ipcRenderer.sendSync('get-language');
-for(let i in langList)if(langList[i].value === targetLang)langList[i].selected = true;
+for (let i in langList) if (langList[i].value === targetLang) langList[i].selected = true;
 let targetTheme = ipcRenderer.sendSync('get-theme');
-if(targetTheme === 'light')lightHint.selected = true;
-else if(targetTheme === 'dark')darkHint.selected = true;
+if (targetTheme === 'light') lightHint.selected = true;
+else if (targetTheme === 'dark') darkHint.selected = true;
 else themeDefault.selected = true;
 delBtn.disabled = true;
 
 // 切换页面
 let page = ipcRenderer.sendSync('get-page');
-if(page === 1){
+if (page === 1) {
     timeTableSetting.style.display = 'block';
     timeTable.style.backgroundColor = '#00000050';
-}else{
+} else {
     generalSetting.style.display = 'block';
     general.style.backgroundColor = '#00000050';
 }
-timeTable.onclick = function (){
-    if(page === 1)return;
+timeTable.onclick = function () {
+    if (page === 1) return;
     page = 1;
-    ipcRenderer.sendSync('set-page',1);
+    ipcRenderer.send('set-page', 1);
     timeTableSetting.style.display = 'block';
     generalSetting.style.display = 'none';
     timeTable.style.backgroundColor = '#00000050';
@@ -145,7 +148,7 @@ timeTable.onclick = function (){
 general.onclick = function () {
     if (page === 2) return;
     page = 2;
-    ipcRenderer.sendSync('set-page', 2);
+    ipcRenderer.send('set-page', 2);
     timeTableSetting.style.display = 'none';
     generalSetting.style.display = 'block';
     general.style.backgroundColor = '#00000050';
@@ -153,56 +156,93 @@ general.onclick = function () {
 }
 
 // 编辑课程表
-let schedules = [[],[],[],[],[],[],[]],curSel=-1;
-const getTimeStr = (time)=>{
-    // 将时间转为字符串
-    let TimeStrHt = String(time.getHours()),TimeStrMt = String(time.getMinutes());
-    let TimeStrHour = TimeStrHt.length === 1?"0" + TimeStrHt:TimeStrHt;
-    let TimeStrMinute = TimeStrMt.length === 1?"0" + TimeStrMt:TimeStrMt;
+let curSel = -1, elements = {};
+/**
+ * 将时间字符串转换为Date对象
+ * @param str 时间字符串
+ * @return {Date} Date对象
+ */
+const str2date = (str)=>{
+    return new Date(1970, 0, 1, Number(str.substring(0, str.lastIndexOf(':'))), Number(str.substring(str.lastIndexOf(':') + 1)));
+}
+/**
+ * 随机生成字符串
+ * https://www.cnblogs.com/duhuo/p/15438032.html
+ * @param e 长度
+ * @returns {string} 生成的字符串
+ */
+const randomString = (e) => {
+    e = e || 32;
+    var t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890",
+        a = t.length,
+        n = "";
+    for (let i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
+    return n
+}
+/**
+ * 将时间转为字符串
+ * @param time 时间(Date对象)
+ * @returns {string} 小时:分钟
+ */
+const getTimeStr = (time) => {
+    let TimeStrHt = String(time.getHours()), TimeStrMt = String(time.getMinutes());
+    let TimeStrHour = TimeStrHt.length === 1 ? "0" + TimeStrHt : TimeStrHt;
+    let TimeStrMinute = TimeStrMt.length === 1 ? "0" + TimeStrMt : TimeStrMt;
     return TimeStrHour + ":" + TimeStrMinute;
 }
-const clearInput = ()=>{
-    // 清除输入
+/**
+ * 清除输入
+ */
+const clearInput = () => {
     className.value = "";
     startTime.value = "";
     endTime.value = "";
-    for(let i = 0;i<weekday.length;i++){
-        if(weekday[i].checked) weekday[i].checked = false;
+    for (let i = 0; i < weekday.length; i++) {
+        if (weekday[i].checked) weekday[i].checked = false;
     }
-    for(let i = 0;i<weekdayHint.length;i++){
-        if(weekdayHint[i].classList.contains('is-checked')) weekdayHint[i].classList.remove('is-checked');
+    for (let i = 0; i < weekdayHint.length; i++) {
+        if (weekdayHint[i].classList.contains('is-checked')) weekdayHint[i].classList.remove('is-checked');
+    }
+    classNameContainer.classList.remove('is-dirty');
+    startTimeContainer.classList.remove('is-dirty');
+    endTimeContainer.classList.remove('is-dirty');
+    delBtn.disabled = true;
+}
+/**
+ * 刷新指定天的课程列表
+ * @param schedule 当天课程列表
+ * @param day 当天星期
+ */
+const refreshSchedule = (schedule, day) => {
+    for (let i = 0; i < schedule.length; i++) {
+        let sTime = new Date(schedule[i]['startTime']);
+        let eTime = new Date(schedule[i]['endTime']);
+        if (!elements[schedule[i]['id']]) elements[schedule[i]['id']] = createElement(schedule[i]['name'], getTimeStr(sTime), getTimeStr(eTime), day, schedule[i]['id']);
+        row[day].appendChild(elements[schedule[i]['id']]);
     }
 }
-const refreshSchedule = (day)=>{
-    // 重载课程列表
-    for(let i in schedules[day])row[day].appendChild(schedules[day][i]['object']);
+/**
+ * 拆分日程到两天
+ * @param schedule 日程字典
+ * @returns {[{eTime: Date, name, sTime: Date},{eTime: Date, name, sTime: Date}]} 选中天的日程和后一天的日程
+ */
+const splitSchedule = (schedule) => {
+    return [{
+        'name': schedule['name'],
+        'sTime': schedule['sTime'],
+        'eTime': new Date(1970, 0, 1, 23, 59)
+    }, {'name': schedule['name'], 'sTime': new Date(1970, 0, 1, 0, 0), 'eTime': schedule['eTime']}]
 }
-const sortBy = (attr,rev)=>{
-    // 根据键值排序 https://blog.csdn.net/weixin_41192489/article/details/111400551
-    if (rev === undefined) rev = 1;
-    return function (a, b) {
-        a = a[attr];
-        b = b[attr];
-        if (a < b)return rev * -1;
-        if (a > b) return rev * 1;
-        return 0;
-    }
-}
-const isCrossTime = (schedule,day)=>{
-    // 验证是否时间交叉
-    for(let i in schedules[day]) {
-        if (schedule['sTime'] > schedules[day][i]['startTime'] && schedule['sTime'] < schedules[day][i]['endTime'] || schedule['eTime'] > schedules[day][i]['startTime'] && schedule['eTime'] < schedules[day][i]['endTime'] || schedule['sTime'] <= schedules[day][i]['startTime'] && schedule['eTime'] >= schedules[day][i]['endTime']) {
-            snackBarContainer.MaterialSnackbar.showSnackbar({message: translation['intersect']});
-            __electronLog.info('Setting Timetable - Time Crossed');
-            return true;
-        }
-    }
-    return false;
-}
-// 拆分日程
-const splitSchedule = (schedule)=>{return [{'name':schedule['name'],'sTime':schedule['sTime'],'eTime':new Date(1970,0,1,23,59)},{'name':schedule['name'],'sTime':new Date(1970,0,1,0,0),'eTime':schedule['eTime']}]}
-const createElement = (name,sTime,eTime,day)=>{
-    // 创建元素
+/**
+ * 创建HTML表格元素
+ * @param name 日程名称
+ * @param sTime 日程开始时间 字符串
+ * @param eTime 日程结束时间 字符串
+ * @param day 星期
+ * @param id 标识符
+ * @returns {HTMLTableCellElement} 表格元素
+ */
+const createElement = (name, sTime, eTime, day, id) => {
     let tmpTd = document.createElement('td');
     tmpTd.className = 'classFrame mdl-data-table__cell--non-numeric';
     let tmpName = document.createElement('p');
@@ -213,16 +253,18 @@ const createElement = (name,sTime,eTime,day)=>{
     tmpTime.innerHTML = sTime + ' - ' + eTime;
     tmpTd.appendChild(tmpName);
     tmpTd.appendChild(tmpTime);
-    tmpTd.onclick = function (){
-        if(curSel === tmpTd){
+    tmpTd.onclick = function () {
+        if (curSel[0] === id) {
             // 取消选中
             tmpTd.style.removeProperty('background-color');
             clearInput();
             curSel = -1;
-        }else{
+            editBtn.innerHTML = translation['add'];
+            editScheduleHint.innerHTML = translation['createSchedule'];
+        } else {
             // 将当前的取消选中
-            if(curSel !== -1){
-                curSel.style.removeProperty('background-color');
+            if (curSel !== -1) {
+                elements[curSel[0]].style.removeProperty('background-color');
                 clearInput();
             }
             // 选中
@@ -232,77 +274,146 @@ const createElement = (name,sTime,eTime,day)=>{
             endTime.value = eTime;
             weekday[day].checked = true;
             weekdayHint[day].classList.add('is-checked');
-            curSel = tmpTd;
+            curSel = [id, day];
+            editBtn.innerHTML = translation['save'];
+            editScheduleHint.innerHTML = translation['editSchedule'];
+            classNameContainer.classList.add('is-dirty');
+            startTimeContainer.classList.add('is-dirty');
+            endTimeContainer.classList.add('is-dirty');
+            delBtn.disabled = false;
         }
     }
     return tmpTd;
 }
-const addSchedule = (name,sTimeStr,eTimeStr,day)=>{
-    // 添加日程
+// 启动时刷新所有日程
+for(let i=0;i<7;i++)refreshSchedule(ipcRenderer.sendSync('get-schedule',i),i);
+/**
+ * 添加日程到日程列表并排序
+ * @param name 日程名称
+ * @param sTimeStr 开始时间 字符串
+ * @param eTimeStr 结束时间 字符串
+ * @param day 星期
+ * @returns {number} 状态码，1 为未成功，0 为成功
+ */
+const addSchedule = (name, sTimeStr, eTimeStr, day) => {
     // 验证留空
-    if(name === "" || sTimeStr === "" || eTimeStr === "" || day === undefined){
-        snackBarContainer.MaterialSnackbar.showSnackbar({message:translation['sthIsEmpty']});
+    if (name === "" || sTimeStr === "" || eTimeStr === "" || day === undefined) {
+        snackBarContainer.MaterialSnackbar.showSnackbar({message: translation['sthIsEmpty']});
         __electronLog.info('Setting Timetable - Something is Empty');
         return 1;
     }
-    __electronLog.info('Setting Timetable - name:'+name+' sTime:'+sTimeStr+' eTime:'+eTimeStr+' day:'+day);
-    // 开始时间必须早于结束时间，或跨天显示
-    let sTime = new Date(1970,0,1,Number(sTimeStr.substring(0,sTimeStr.lastIndexOf(':'))),Number(sTimeStr.substring(sTimeStr.lastIndexOf(':')+1)));
-    let eTime = new Date(1970,0,1,Number(eTimeStr.substring(0,eTimeStr.lastIndexOf(':'))),Number(eTimeStr.substring(eTimeStr.lastIndexOf(':')+1)));
-    if(sTime - eTime === 0){
-        snackBarContainer.MaterialSnackbar.showSnackbar({message:translation['sameTime']});
+    __electronLog.info('Setting Timetable - name:' + name + ' sTime:' + sTimeStr + ' eTime:' + eTimeStr + ' day:' + day);
+    // 不允许开始结束时间相同
+    let sTime = str2date(sTimeStr);
+    let eTime = str2date(eTimeStr);
+    if (sTime - eTime === 0) {
+        snackBarContainer.MaterialSnackbar.showSnackbar({message: translation['sameTime']});
         __electronLog.info('Setting Timetable - Start time is the same as end time');
         return 1;
     }
-    let t = {'name':name,'sTime':sTime,'eTime':eTime};
+    let t = {'name': name, 'sTime': sTime, 'eTime': eTime};
+    //随机生成标识符
+    let id = randomString(8);
     // 存入数组并排序
-    if(sTime > eTime){
+    if (sTime > eTime) {
+        // 需要拆分
         let tmpSchedule = splitSchedule(t);
         __electronLog.info('Setting Timetable - Start time later than end time');
-        for(let j in tmpSchedule){
-            if(tmpSchedule[j]['sTime']-tmpSchedule[j]['eTime'] === 0)continue;
-            if(isCrossTime(tmpSchedule[j],day + j*1))return 1;
-            schedules[day + j*1].push({'name':tmpSchedule[j]['name'],'startTime':tmpSchedule[j]['sTime'],'endTime':tmpSchedule[j]['eTime'],'object':createElement(tmpSchedule[j]['name'],getTimeStr(tmpSchedule[j]['sTime']),getTimeStr(tmpSchedule[j]['eTime'],),day + j*1)});
-            schedules[day + j*1].sort(sortBy('startTime',1));
-            refreshSchedule(day+j*1);
+        let newId = [curSel===-1?id:curSel[0],randomString(8)];
+        for (let j in tmpSchedule) {
+            if (tmpSchedule[j]['sTime'] - tmpSchedule[j]['eTime'] === 0) continue;
+            let tmpList;
+            if(curSel === -1 || Number(j) === 1) tmpList = ipcRenderer.sendSync('add-schedule', [newId[j], tmpSchedule[j]['name'], tmpSchedule[j]['sTime'].toISOString(), tmpSchedule[j]['eTime'].toISOString(), day + j * 1]);
+            else tmpList = ipcRenderer.sendSync('edit-schedule',[curSel[0],curSel[1],tmpSchedule[j]['name'], tmpSchedule[j]['sTime'].toISOString(), tmpSchedule[j]['eTime'].toISOString(), day + j * 1]);
+            if (tmpList === -1) {
+                snackBarContainer.MaterialSnackbar.showSnackbar({message: translation['intersect']});
+                __electronLog.info('Setting Timetable - Time Crossed');
+                return 1;
+            }
+            if(curSel!== -1){
+                elements[curSel[0]].remove();
+                elements[curSel[0]] = null;
+            }
+            refreshSchedule(tmpList, day + j * 1);
         }
-    }else{
-        if(isCrossTime(t,day))return 1;
-        schedules[day].push({'name':name,'startTime':sTime,'endTime':eTime,'object':createElement(name,sTimeStr,eTimeStr,day)});
-        schedules[day].sort(sortBy('startTime',1));
-        refreshSchedule(day);
+    } else {
+        // 不需拆分
+        let tmpList
+        if(curSel === -1) tmpList = ipcRenderer.sendSync('add-schedule', [id, name, sTime.toISOString(), eTime.toISOString(), day]);
+        else tmpList = ipcRenderer.sendSync('edit-schedule',[curSel[0],curSel[1],name,sTime.toISOString(), eTime.toISOString(), day]);
+        if (tmpList === -1) {
+            snackBarContainer.MaterialSnackbar.showSnackbar({message: translation['intersect']});
+            __electronLog.info('Setting Timetable - Time Crossed');
+            return 1;
+        }
+        if(curSel!== -1){
+            elements[curSel[0]].remove();
+            elements[curSel[0]] = null;
+        }
+        refreshSchedule(tmpList, day);
     }
+    if(curSel !== -1)refreshSchedule(ipcRenderer.sendSync('get-schedule',curSel[1]),curSel[1]);
     return 0;
 }
-editBtn.onclick = function (){
+
+editBtn.onclick = function () {
     let name = className.value;
     let sTimeStr = startTime.value;
     let eTimeStr = endTime.value;
     let day;
-    for(let i = 0;i<weekday.length;i++){
-        if(weekday[i].checked){
+    for (let i = 0; i < weekday.length; i++) {
+        if (weekday[i].checked) {
             day = Number(weekday[i].value);
             break;
         }
     }
-    if(addSchedule(name,sTimeStr,eTimeStr,day))return;
+    // 添加或编辑日程
+    if (addSchedule(name, sTimeStr, eTimeStr, day)) return;
     clearInput();
+    if(curSel !== -1)elements[curSel[0]].style.removeProperty('background-color');
+    curSel = -1;
+    editBtn.innerHTML = translation['add'];
+    editScheduleHint.innerHTML = translation['createSchedule'];
+}
+// 删除日程
+delBtn.onclick = function (){
+    let tmpList = ipcRenderer.sendSync('del-schedule',curSel);
+    refreshSchedule(tmpList,curSel[1]);
+    clearInput();
+    editBtn.innerHTML = translation['add'];
+    editScheduleHint.innerHTML = translation['createSchedule'];
+    elements[curSel[0]].remove();
+    elements[curSel[0]] = null;
+    curSel = -1;
 }
 
+
 // 关闭及最小化窗口
-close.onclick = function (){ipcRenderer.sendSync('setting-window-control','close')}
-minimize.onclick = function (){ipcRenderer.sendSync('setting-window-control','minimize')}
+close.onclick = function () {
+    ipcRenderer.send('setting-window-control', 'close')
+}
+minimize.onclick = function () {
+    ipcRenderer.send('setting-window-control', 'minimize')
+}
 
 // 更换主题配色
-themeSel.onchange = function (){ipcRenderer.sendSync('change-theme',themeSel.options[themeSel.selectedIndex].value)}
+themeSel.onchange = function () {
+    ipcRenderer.send('change-theme', themeSel.options[themeSel.selectedIndex].value)
+}
 // 切换语言
-langSel.onchange = function (){
-    ipcRenderer.sendSync('set-language',langSel.options[langSel.selectedIndex].value);
+langSel.onchange = function () {
+    ipcRenderer.send('set-language', langSel.options[langSel.selectedIndex].value);
     location.reload();
 }
 // 窗口置顶
-topSwitch.onchange = function (){ipcRenderer.sendSync('set-top',topSwitch.checked)}
+topSwitch.onchange = function () {
+    ipcRenderer.send('set-top', topSwitch.checked)
+}
 // 允许拖动
-dragSwitch.onchange = function (){ipcRenderer.sendSync('set-drag',dragSwitch.checked)}
+dragSwitch.onchange = function () {
+    ipcRenderer.send('set-drag', dragSwitch.checked)
+}
 // 开机启动
-autostartSwitch.onchange = function (){ipcRenderer.sendSync('set-autostart',autostartSwitch.checked)}
+autostartSwitch.onchange = function () {
+    ipcRenderer.send('set-autostart', autostartSwitch.checked)
+}

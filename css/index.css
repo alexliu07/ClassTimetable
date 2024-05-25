@@ -1,47 +1,67 @@
-html,body{
+html, body {
     height: 100vh;
     width: 100vw;
     margin: 0;
 }
-@media(prefers-color-scheme:dark){
-    p{color:rgba(255,255,255,.8)}
+
+@media (prefers-color-scheme: dark) {
+    p {
+        color: rgba(255, 255, 255, .8)
+    }
 }
-@media(prefers-color-scheme:light){
-    p{color:rgba(0,0,0,.54)}
+
+@media (prefers-color-scheme: light) {
+    p {
+        color: rgba(0, 0, 0, .54)
+    }
 }
-p{
+
+p {
     margin: 0;
     cursor: default;
 }
-#dragBar{
+
+#dragBar {
     position: fixed;
     height: 15vh;
     width: 100vw;
 }
-.mode{display: none}
-#hintText1{
+
+.mode {
+    display: none
+}
+
+#hintText1 {
     font-weight: bold;
     text-align: center;
     font-size: calc(10vw + 5vh);
     padding-top: calc(50vh - 10vw);
 }
-.hintText{
+
+.hintText {
     height: 15vh;
     font-size: calc(4vw + 2vh);
     padding-top: 5vh;
     padding-left: 5vw;
 }
-.className{
+
+.className {
     font-weight: bold;
     font-size: calc(10vw + 5vh);
     text-align: center;
 }
-.classTime{
+
+.classTime {
     font-size: calc(4vw + 2vh);
     text-align: center;
 }
-.nextClass{
+
+.nextClass {
     font-size: calc(3vw + 1.5vh);
     text-align: right;
+    padding-right: 5vw;
 }
-#normalEvent3{display: block}
+
+#normalEvent3 {
+    display: block
+}

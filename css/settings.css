@@ -1,85 +1,224 @@
-html,body{
+html, body {
     height: 100vh;
     width: 100vw;
     margin: 0;
 }
-@media(prefers-color-scheme:dark){
-    p{color:rgba(255,255,255,.8)}
-    label{color:rgba(255,255,255,.8)}
-    #minimize{background-image: url("../imgs/miniwhite.png")}
-    #close{background-image: url("../imgs/closewhite.png")}
-    .menuBtn:hover {background-color: #dddddd70}
-    .controlBtn:hover{background-color: rgba(255,255,255,0.2)}
-    th{color:rgba(255,255,255,.8)}
-    .mdl-data-table th{color:rgba(255,255,255,.8)}
-    td{color:rgba(255,255,255,.8)}
-    .editHint{color: rgba(255,255,255,.8)}
-    legend{color: rgba(255,255,255,.8)}
-    .field{border-color: rgb(192, 192, 192)}
-    .mdl-textfield__input{border-bottom-color: rgba(255,255,255,.5)}
-    .textLabel{color: rgba(255,255,255,.6)}
-    .edit{color: rgba(255,255,255,.8)}
-    .mdl-radio__outer-circle{border-color:rgba(255,255,255,.54)}
-    .mdl-data-table{background-color: #00000050}
-    .classFrame:hover{background-color: #dddddd70}
-    .mdl-data-table tbody tr:hover{background-color: #111111}
-    .mdl-switch__label{color:rgba(255,255,255,.8)}
-    select{color:rgba(255,255,255,.8)}
-    option{background-color:rgba(0,0,0,.54)}
-}
-@media(prefers-color-scheme:light){
-    p{color:rgba(0,0,0,.7)}
-    label{color:rgba(0,0,0,.7)}
-    #minimize{background-image: url("../imgs/miniblack.png")}
-    #close{background-image: url("../imgs/closeblack.png")}
-    .menuBtn:hover {background-color: #00000020}
-    .controlBtn:hover{background-color: rgba(155, 155, 155, 0.2)
+
+@media (prefers-color-scheme: dark) {
+    p {
+        color: rgba(255, 255, 255, .8)
     }
-    th{color:rgba(0,0,0,.7)}
-    td{color:rgba(0,0,0,.7)}
-    .mdl-data-table th{color:rgba(0,0,0,.7)}
-    .editHint{color: rgba(0,0,0,.7)}
-    legend{color: rgba(0,0,0,.7)}
-    .field{border-color: rgba(29, 29, 29, 0.5)}
-    .mdl-textfield__input{border-bottom-color: rgba(0,0,0,0.12)}
-    .textLabel{color: rgba(0,0,0,.26)}
-    .edit{color: rgba(0,0,0,.7)}
-    .mdl-radio__outer-circle{border-color: rgba(0,0,0,.54)}
-    .mdl-data-table{background-color: #ffffff20}
-    .classFrame:hover{background-color: #00000020}
-    .mdl-data-table tbody tr:hover{background-color: #eee}
-    .mdl-switch__label{color:rgba(0,0,0,.7)}
-    select{color:rgba(0,0,0,.7)}
-    option{background-color:rgba(255,255,255,.8)}
+
+    label {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    #minimize {
+        background-image: url("../imgs/miniwhite.png")
+    }
+
+    #close {
+        background-image: url("../imgs/closewhite.png")
+    }
+
+    .menuBtn:hover {
+        background-color: #dddddd70
+    }
+
+    .controlBtn:hover {
+        background-color: rgba(255, 255, 255, 0.2)
+    }
+
+    th {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    .mdl-data-table th {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    td {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    .editHint {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    legend {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    .field {
+        border-color: rgb(192, 192, 192)
+    }
+
+    .mdl-textfield__input {
+        border-bottom-color: rgba(255, 255, 255, .5)
+    }
+
+    .textLabel {
+        color: rgba(255, 255, 255, .6)
+    }
+
+    .edit {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    .mdl-radio__outer-circle {
+        border-color: rgba(255, 255, 255, .54)
+    }
+
+    .mdl-data-table {
+        background-color: #00000050
+    }
+
+    .classFrame:hover {
+        background-color: #dddddd70
+    }
+
+    .mdl-data-table tbody tr:hover {
+        background-color: #111111
+    }
+
+    .mdl-switch__label {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    select {
+        color: rgba(255, 255, 255, .8)
+    }
+
+    option {
+        background-color: rgba(0, 0, 0, .54)
+    }
 }
+
+@media (prefers-color-scheme: light) {
+    p {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    label {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    #minimize {
+        background-image: url("../imgs/miniblack.png")
+    }
+
+    #close {
+        background-image: url("../imgs/closeblack.png")
+    }
+
+    .menuBtn:hover {
+        background-color: #00000020
+    }
+
+    .controlBtn:hover {
+        background-color: rgba(155, 155, 155, 0.2)
+    }
+
+    th {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    td {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    .mdl-data-table th {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    .editHint {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    legend {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    .field {
+        border-color: rgba(29, 29, 29, 0.5)
+    }
+
+    .mdl-textfield__input {
+        border-bottom-color: rgba(0, 0, 0, 0.12)
+    }
+
+    .textLabel {
+        color: rgba(0, 0, 0, .26)
+    }
+
+    .edit {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    .mdl-radio__outer-circle {
+        border-color: rgba(0, 0, 0, .54)
+    }
+
+    .mdl-data-table {
+        background-color: #ffffff20
+    }
+
+    .classFrame:hover {
+        background-color: #00000020
+    }
+
+    .mdl-data-table tbody tr:hover {
+        background-color: #eee
+    }
+
+    .mdl-switch__label {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    select {
+        color: rgba(0, 0, 0, .7)
+    }
+
+    option {
+        background-color: rgba(255, 255, 255, .8)
+    }
+}
+
 ::-webkit-scrollbar {
     height: 8px;
     width: 8px;
 }
+
 ::-webkit-scrollbar-track {
     background: transparent;
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb {
-    background: rgb(205,205,205);
+    background: rgb(205, 205, 205);
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: rgb(180,180,180);
+    background: rgb(180, 180, 180);
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:active {
-    background: rgb(180,180,180);
+    background: rgb(180, 180, 180);
     border-radius: 4px;
 }
-select{
+
+select {
     background-color: transparent;
     outline: 0;
 }
-p{
+
+p {
     margin: 0;
 }
-#controlBar{
+
+#controlBar {
     width: 100vw;
     height: 5vh;
     display: flex;
@@ -87,17 +226,20 @@ p{
     -webkit-app-region: drag;
     padding-top: 1vh;
 }
-#title{
+
+#title {
     margin-left: 2vw;
     display: inline-block;
-    font-size: min(30px,calc(1.5vw + 1vh));
+    font-size: min(30px, calc(1.5vw + 1vh));
 }
-#windowControl{
+
+#windowControl {
     margin-right: 1vw;
     margin-left: auto;
     display: inline-block;
 }
-.controlBtn{
+
+.controlBtn {
     height: 5vh;
     width: 5vh;
     background-size: 3vh;
@@ -108,107 +250,152 @@ p{
     background-repeat: no-repeat;
     background-position: center;
 }
-.controlBtn:hover{border-radius: 5px;}
-#menu{padding-top: 1vh}
+
+.controlBtn:hover {
+    border-radius: 5px;
+}
+
+#menu {
+    padding-top: 1vh
+}
+
 ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
     overflow: hidden;
 }
-li {float: left}
+
+li {
+    float: left
+}
+
 li p {
     display: inline-block;
     text-align: center;
     margin-left: 1vw;
     padding-top: 1vh;
     padding-bottom: 1vh;
-    font-size: min(20px,calc(1vw + 0.7vh));
+    font-size: min(20px, calc(1vw + 0.7vh));
     width: 20vw;
     cursor: default;
 }
-table{
+
+table {
     padding-top: 3vh;
     margin-top: 1vh;
     margin-left: 1vw;
     float: left;
 }
-th{
+
+th {
     padding-left: 2.5vw;
     padding-right: 2.5vw;
     cursor: default;
-    font-size: min(20px,calc(2vw + 1.5vh));
+    font-size: min(20px, calc(2vw + 1.5vh));
 }
-#editSchedule{
+
+#editSchedule {
     width: 90vw;
-    margin-left:5vw;
+    margin-left: 5vw;
 }
-.field{
+
+.field {
     border-width: 2px;
     border-style: groove;
     border-image: initial;
 }
-.mdl-textfield{margin-left: 2vw}
-#weekdaySel{
+
+.mdl-textfield {
+    margin-left: 2vw
+}
+
+#weekdaySel {
     margin-left: 2vw;
     width: fit-content;
 }
-.weekday{
+
+.weekday {
     margin-left: 1vw;
     margin-right: 1vw;
 }
-#options{
+
+#options {
     margin-top: 2vh;
     margin-bottom: 2vh;
     margin-left: 2vh;
 }
-.mdl-data-table th{vertical-align: middle}
-.mdl-data-table td{
+
+.mdl-data-table th {
+    vertical-align: middle
+}
+
+.mdl-data-table td {
     padding-bottom: 0;
     padding-top: 0;
 }
-#showSchedule{
-    width:100vw;
+
+#showSchedule {
+    width: 100vw;
     overflow: auto;
 }
-.setting{display: none}
-#switches{
+
+.setting {
+    display: none
+}
+
+#switches {
     width: 40vw;
     margin-top: 2vh;
     margin-left: 2vw;
     padding-left: 2vw;
 }
-.mdl-switch{
+
+.mdl-switch {
     margin-top: 2vh;
     margin-bottom: 2vh;
 }
-.sideSetting{
+
+.sideSetting {
     width: 50vw;
     display: inline-block;
 }
-#selects{
+
+#selects {
     width: 40vw;
     margin-top: 2vh;
     margin-left: 2vw;
     padding-left: 2vw;
 }
-#langSelHint{
+
+#langSelHint {
     display: block;
     margin-top: 2vh;
 }
-.sel{
+
+.sel {
     width: 30vw;
     height: 3vh;
     margin-top: 2vh;
     margin-bottom: 2vh;
     display: block;
 }
-#about{
+
+#about {
     width: 40vw;
     margin-top: 2vh;
     margin-left: 2vw;
     padding-left: 2vw;
 }
-#left{float:left}
-#right{float:right}
-.classInfo{cursor: default}
+
+#left {
+    float: left
+}
+
+#right {
+    float: right
+}
+
+.classInfo {
+    cursor: default
+}
