@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Class Timetable</string>
+    <string name="timetable_already_exists">The timetable already exists</string>
+    <string name="overwrite_data">Continuing to import will overwrite the current data</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="import_timetable">Import timetable</string>
+    <string name="import_success">Import successful</string>
+    <string name="transfer_to_watch">Transfer to watch</string>
+</resources>

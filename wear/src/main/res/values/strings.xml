@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Class Timetable</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="tile_label">Example tile</string>
+    <string name="complication_label">Example complication</string>
+    <string name="day0">Monday</string>
+    <string name="day1">Tuesday</string>
+    <string name="day2">Wednesday</string>
+    <string name="day3">Thursday</string>
+    <string name="day4">Friday</string>
+    <string name="day5">Saturday</string>
+    <string name="day6">Sunday</string>
+</resources>
