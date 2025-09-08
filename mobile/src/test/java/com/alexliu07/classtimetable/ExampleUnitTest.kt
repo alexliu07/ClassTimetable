@@ -1,4 +1,4 @@
-package com.alexliu07.classtimetable.mobile
+package com.alexliu07.classtimetable
 
 import org.junit.Test
 

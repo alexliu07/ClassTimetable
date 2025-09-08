@@ -1,4 +1,4 @@
-package com.alexliu07.classtimetable.mobile
+package com.alexliu07.classtimetable
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.alexliu07.classtimetable.mobile", appContext.packageName)
+        assertEquals("com.alexliu07.classtimetable", appContext.packageName)
     }
 }

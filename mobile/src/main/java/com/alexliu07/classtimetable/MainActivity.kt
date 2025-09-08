@@ -1,16 +1,14 @@
-package com.alexliu07.classtimetable.mobile
+package com.alexliu07.classtimetable
 
-import android.app.Activity
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -24,7 +22,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -43,11 +40,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import androidx.room.util.TableInfo
-import com.alexliu07.classtimetable.mobile.ui.theme.ClassTimetableTheme
+import com.alexliu07.classtimetable.ui.theme.ClassTimetableTheme
+import com.google.android.gms.wearable.DataMap
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
 import org.yaml.snakeyaml.Yaml
-import java.io.File
-import java.io.FileInputStream
 import java.time.LocalTime
 
 
@@ -66,12 +63,17 @@ class MainActivity : ComponentActivity() {
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 titleContentColor = MaterialTheme.colorScheme.primary
-                            ) ,
-                            title = { Text(text=stringResource(R.string.app_name), fontWeight = FontWeight.Bold) }
+                            ),
+                            title = {
+                                Text(
+                                    text = stringResource(R.string.app_name),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         )
                     }
                 ) { innerPadding ->
-                    Greeting(
+                    MainApp(
                         db = dataDao,
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -109,6 +111,9 @@ interface DataDao{
 
     @Query("SELECT * FROM data WHERE day = :day")
     fun getData(day: Int): List<Data>
+
+    @Query("SELECT * FROM data")
+    fun getAll(): List<Data>
 
     @Query("DELETE FROM data")
     fun empty()
@@ -157,13 +162,37 @@ fun parseSaveCSES(db: DataDao,uri: Uri,contentResolver: ContentResolver){
 //    for (i in 0..6)timetable[i].sortBy({it.startTime})
 }
 
+fun transferData(db: DataDao, context: Context, successText:String, failText: String){
+    val dataClient = Wearable.getDataClient(context)
+    val request = PutDataMapRequest.create("/data").run {
+        val allData = db.getAll()
+        val dataMaps = arrayListOf<DataMap>()
+        for(data in allData){
+            val tempDataMap = DataMap()
+            tempDataMap.putInt("day",data.day)
+            tempDataMap.putString("subject",data.subject)
+            tempDataMap.putString("startTime",data.startTime.toString())
+            tempDataMap.putString("endTime",data.endTime.toString())
+            dataMaps.add(tempDataMap)
+        }
+        dataMap.putDataMapArrayList("data",dataMaps)
+        asPutDataRequest()
+    }.setUrgent()
+    dataClient.putDataItem(request).addOnSuccessListener {
+        Toast.makeText(context,successText,Toast.LENGTH_SHORT).show()
+    }.addOnFailureListener {
+        Toast.makeText(context,failText,Toast.LENGTH_SHORT).show()
+    }
+}
+
 @Composable
-fun Greeting(db: DataDao, modifier: Modifier = Modifier) {
-//    parseSaveCSES(db,testString)
+fun MainApp(db: DataDao, modifier: Modifier = Modifier) {
     val showDialog = remember{ mutableStateOf(false)}
     val selectedUri = remember{ mutableStateOf<Uri?>(null)}
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri: Uri?->selectedUri.value = uri}
     val context = LocalContext.current
+    val transferSuccessText = stringResource(R.string.transfer_success)
+    val transferFailText = stringResource(R.string.transfer_fail)
     Column(
         modifier = modifier
     ){
@@ -175,7 +204,7 @@ fun Greeting(db: DataDao, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(top = 10.dp, start = 10.dp)
         ){ Text(stringResource(R.string.import_timetable))}
         Button(
-            onClick = {},
+            onClick = {transferData(db,context,transferSuccessText,transferFailText)},
             modifier = Modifier.padding(top = 10.dp, start = 10.dp)
         ){ Text(stringResource(R.string.transfer_to_watch))}
     }
@@ -187,7 +216,8 @@ fun Greeting(db: DataDao, modifier: Modifier = Modifier) {
                 showDialog.value = false
                 launcher.launch(arrayOf("application/yaml"))
             }) { Text(stringResource(R.string.confirm)) } },
-            dismissButton = { TextButton(onClick = {showDialog.value = false}) { Text(stringResource(R.string.cancel)) }},
+            dismissButton = { TextButton(onClick = {showDialog.value = false}) { Text(stringResource(
+                R.string.cancel)) }},
             title = { Text(stringResource(R.string.timetable_already_exists)) },
             text = {Text(stringResource(R.string.overwrite_data))}
         )

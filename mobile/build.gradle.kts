@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.alexliu07.classtimetable.mobile"
+    namespace = "com.alexliu07.classtimetable"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.alexliu07.classtimetable.mobile"
+        applicationId = "com.alexliu07.classtimetable"
         minSdk = 29
         targetSdk = 36
         versionCode = 1
@@ -53,6 +53,7 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.5")
     implementation("androidx.room:room-runtime:2.7.2")
     ksp("androidx.room:room-compiler:2.7.2")
+    implementation(libs.gms.play.services.wearable)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

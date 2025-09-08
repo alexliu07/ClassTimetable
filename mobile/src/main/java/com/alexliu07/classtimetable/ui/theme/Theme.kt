@@ -1,4 +1,4 @@
-package com.alexliu07.classtimetable.mobile.ui.theme
+package com.alexliu07.classtimetable.ui.theme
 
 import android.app.Activity
 import android.os.Build

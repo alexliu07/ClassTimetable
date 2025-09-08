@@ -7,6 +7,7 @@ package com.alexliu07.classtimetable.presentation
 
 import android.R.style
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -47,8 +48,43 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.alexliu07.classtimetable.R.string
 import com.alexliu07.classtimetable.presentation.theme.ClassTimetableTheme
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.DataEvent
+import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.Wearable
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
+
+    override fun onResume() {
+        super.onResume()
+        Log.i("listener","data listener added")
+        Wearable.getDataClient(this).addListener(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.i("listener","data listener removed")
+        Wearable.getDataClient(this).removeListener(this)
+    }
+
+    override fun onDataChanged(dataEvents: DataEventBuffer) {
+        Log.i("listener","event get")
+        for (event in dataEvents) {
+            if (event.type == DataEvent.TYPE_CHANGED) {
+                val dataItem = event.dataItem
+                if (dataItem.uri.path == "/data") {
+                    // 处理接收到的数据
+                    val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                    Log.i("data",dataMap.toString())
+                }
+            } else if (event.type == DataEvent.TYPE_DELETED) {
+                // 处理数据项被删除
+                Log.i("data","deleted")
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -56,6 +92,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WearApp("Android")
         }
+
     }
 }
 
@@ -130,6 +167,7 @@ fun ClassDisplay(){
 
 @Composable
 fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
+    Log.i("page","$pageNumber $pageContent")
     Box(
         modifier = Modifier
             .fillMaxSize()

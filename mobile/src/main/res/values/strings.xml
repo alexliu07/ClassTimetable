@@ -7,4 +7,6 @@
     <string name="import_timetable">Import timetable</string>
     <string name="import_success">Import successful</string>
     <string name="transfer_to_watch">Transfer to watch</string>
+    <string name="transfer_success">Transfer successful</string>
+    <string name="transfer_fail">Transfer Failed</string>
 </resources>
