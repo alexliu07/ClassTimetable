@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -50,6 +51,8 @@ dependencies {
     implementation(libs.androidx.wear.tooling.preview)
     implementation("androidx.wear.compose:compose-foundation:1.5.0")
     implementation("androidx.wear.compose:compose-material3:1.5.0")
+    implementation("androidx.room:room-runtime:2.7.2")
+    ksp("androidx.room:room-compiler:2.7.2")
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.tiles)

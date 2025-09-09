@@ -8,6 +8,7 @@ package com.alexliu07.classtimetable.presentation
 import android.R.style
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -38,6 +39,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.room.ColumnInfo
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
@@ -51,8 +63,10 @@ import com.alexliu07.classtimetable.presentation.theme.ClassTimetableTheme
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
+import java.time.LocalTime
 
 class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
 
@@ -74,9 +88,12 @@ class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
             if (event.type == DataEvent.TYPE_CHANGED) {
                 val dataItem = event.dataItem
                 if (dataItem.uri.path == "/data") {
+                    val db = Room.databaseBuilder(applicationContext, AppDatabase::class.java,"data").allowMainThreadQueries().build()
+                    val dataDao = db.dataDao()
                     // 处理接收到的数据
                     val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
-                    Log.i("data",dataMap.toString())
+                    importData(dataDao,dataMap)
+                    Log.i("data","changed")
                 }
             } else if (event.type == DataEvent.TYPE_DELETED) {
                 // 处理数据项被删除
@@ -89,8 +106,10 @@ class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setTheme(style.Theme_DeviceDefault)
+        val db = Room.databaseBuilder(applicationContext, AppDatabase::class.java,"data").allowMainThreadQueries().build()
+        val dataDao = db.dataDao()
         setContent {
-            WearApp("Android")
+            WearApp(dataDao)
         }
 
     }
@@ -98,8 +117,63 @@ class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
 
 data class ListItem(val id: Int, val time: String, val subject: String)
 
+@Entity
+data class Data(
+    @PrimaryKey(autoGenerate = true) val id: Int? = null,
+    @ColumnInfo val day: Int,
+    @ColumnInfo val subject: String,
+    @ColumnInfo val startTime: LocalTime,
+    @ColumnInfo val endTime: LocalTime
+)
+
+class Converters{
+    @TypeConverter
+    fun fromLocalTime(time: LocalTime): String{
+        return time.toString()
+    }
+
+    @TypeConverter
+    fun toLocalTime(time: String): LocalTime{
+        return LocalTime.parse(time)
+    }
+}
+
+@Dao
+interface DataDao{
+    @Insert
+    fun insert(data: Data)
+
+    @Query("SELECT * FROM data WHERE day = :day")
+    fun getData(day: Int): List<Data>
+
+    @Query("SELECT * FROM data")
+    fun getAll(): List<Data>
+
+    @Query("DELETE FROM data")
+    fun empty()
+
+    @Query("DELETE FROM sqlite_sequence")
+    fun resetPrimaryKey()
+
+    @Query("SELECT (SELECT COUNT(*) FROM data) == 0")
+    fun isEmpty(): Boolean
+}
+
+@Database(entities = [Data::class], version = 1)
+@TypeConverters(Converters::class)
+abstract class AppDatabase : RoomDatabase(){
+    abstract fun dataDao(): DataDao
+}
+
+fun emptyDB(db: DataDao){
+    db.empty()
+    db.resetPrimaryKey()
+}
+
 @Composable
-fun WearApp(greetingName: String) {
+fun WearApp(db: DataDao) {
+    Log.i("page","wearapp run")
+    val pageData = loadData(db)
     ClassTimetableTheme {
         Box(
             modifier = Modifier
@@ -107,27 +181,50 @@ fun WearApp(greetingName: String) {
                 .background(MaterialTheme.colors.background),
             contentAlignment = Alignment.Center
         ) {
-            ClassDisplay()
+            ClassDisplay(db,pageData)
+        }
+    }
+}
+
+fun importData(db: DataDao,data: DataMap){
+    emptyDB(db)
+    val dataList = data.getDataMapArrayList("data")
+    if (dataList != null) {
+        for(item in dataList){
+            val day = item.getInt("day")
+            val subject = item.getString("subject")
+            val startTime = LocalTime.parse(item.getString("startTime"))
+            val endTime = LocalTime.parse(item.getString("endTime"))
+            val tempData = Data(day=day, subject = subject!!, startTime = startTime, endTime = endTime)
+            db.insert(tempData)
         }
     }
 }
 
 @Composable
-fun ClassDisplay(){
+fun loadData(db: DataDao):SnapshotStateList<SnapshotStateList<ListItem>>{
+    val pageData = remember { mutableStateListOf<SnapshotStateList<ListItem>>() }
+    if(db.isEmpty()){
+        for(i in 0..6){
+            val tempList = remember { mutableStateListOf<ListItem>() }
+            tempList.add(ListItem(0,stringResource(string.no_timetable),stringResource(string.please_import)))
+            pageData.add(tempList)
+        }
+    }else{
+        for(i in 0..6){
+            val tempData = db.getData(i).sortedBy { it.startTime }
+            val tempList = remember { mutableStateListOf<ListItem>() }
+            for(data in tempData)tempList.add(ListItem(data.id!!,"${data.startTime} - ${data.endTime}",data.subject))
+            pageData.add(tempList)
+        }
+    }
+    return pageData
+}
+
+@Composable
+fun ClassDisplay(db: DataDao,pageData:SnapshotStateList<SnapshotStateList<ListItem>>){
     val pageCount = 7
     val pagerState = rememberPagerState { pageCount }
-
-    @Composable
-    fun loadData(pageNumber:Int): SnapshotStateList<ListItem> {
-        val itemList = remember { mutableStateListOf<ListItem>() }
-        var nextItemId = remember { 0 }
-        if (itemList.isEmpty()) {
-            repeat(3) {index->
-                itemList.add(ListItem(nextItemId++, "9:00","page $pageNumber - $index"))
-            }
-        }
-        return itemList
-    }
 
     Column( // Use a Column to stack Pager and Indicators
         modifier = Modifier.fillMaxSize(),
@@ -139,7 +236,7 @@ fun ClassDisplay(){
                 .weight(1f)
                 .fillMaxWidth()
         ) { page ->
-            PageContent(pageNumber = page, pageContent = loadData(page))
+            PageContent(pageNumber = page, pageContent = pageData[page])
         }
         // Page Indicators
         Row(
@@ -224,11 +321,4 @@ fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
             }
         }
     }
-}
-
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
 }
