@@ -28,6 +28,6 @@
 ***
 ## 使用说明
 使用能导出 [CSES 通用课程表交换文件](https://github.com/SmartTeachCN/CSES) 的课程表类软件(如[Class Widgets](https://classwidgets.rinlit.cn/zh/)和[ClassIsland](https://classisland.tech/))导出 CSES 通用课程表交换文件 (以yaml为文件后缀)<br>
-在手机端app导入该文件，程序会自动将数据传输到手表
+在手机端app导入该文件，程序会自动将数据传输到手表<br>
 使用GMS的Datalayer API，所以可能具有GMS的手机和手表才可使用
 ***
