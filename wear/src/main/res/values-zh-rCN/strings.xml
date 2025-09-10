@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">腕上课表</string>
+    <string name="tile_label">示例卡片</string>
+    <string name="complication_label">示例复杂功能</string>
+    <string name="day0">星期一</string>
+    <string name="day1">星期二</string>
+    <string name="day2">星期三</string>
+    <string name="day3">星期四</string>
+    <string name="day4">星期五</string>
+    <string name="day5">星期六</string>
+    <string name="day6">星期日</string>
+    <string name="transfer_success">传输成功，请重启APP以刷新数据</string>
+    <string name="no_timetable">暂无课程表</string>
+    <string name="please_import">请在手机上导入</string>
+</resources>

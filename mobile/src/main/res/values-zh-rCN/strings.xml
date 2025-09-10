@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">腕上课表</string>
+    <string name="timetable_already_exists">课程表已经存在</string>
+    <string name="overwrite_data">继续导入将会覆盖当前数据</string>
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="import_timetable">导入课程表</string>
+    <string name="import_success">导入成功</string>
+    <string name="transfer_to_watch">传输到手表</string>
+    <string name="transfer_success">传输成功</string>
+    <string name="transfer_fail">传输失败</string>
+</resources>

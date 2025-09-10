@@ -13,7 +13,7 @@
     <string name="day4">Friday</string>
     <string name="day5">Saturday</string>
     <string name="day6">Sunday</string>
-    <string name="transfer_success">Transfer Successful</string>
+    <string name="transfer_success">Transfer Successful, please restart the app</string>
     <string name="no_timetable">No schedule yet</string>
     <string name="please_import">Please import from your phone</string>
 </resources>

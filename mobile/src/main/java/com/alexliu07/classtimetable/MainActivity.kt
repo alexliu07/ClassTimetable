@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         TopAppBar(
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                containerColor = MaterialTheme.colorScheme.inversePrimary,
                                 titleContentColor = MaterialTheme.colorScheme.primary
                             ),
                             title = {
@@ -136,7 +136,8 @@ fun emptyDB(db: DataDao){
     db.resetPrimaryKey()
 }
 
-fun parseSaveCSES(db: DataDao,uri: Uri,contentResolver: ContentResolver){
+fun parseSaveCSES(db: DataDao,uri: Uri,context: Context){
+    val contentResolver = context.contentResolver
     val inputStream = contentResolver.openInputStream(uri)
     val yaml = Yaml()
     val data = yaml.load<Map<String,Any>>(inputStream)
@@ -159,10 +160,11 @@ fun parseSaveCSES(db: DataDao,uri: Uri,contentResolver: ContentResolver){
             db.insert(classData)
         }
     }
+    transferData(db,context)
 //    for (i in 0..6)timetable[i].sortBy({it.startTime})
 }
 
-fun transferData(db: DataDao, context: Context, successText:String, failText: String){
+fun transferData(db: DataDao, context: Context){
     val dataClient = Wearable.getDataClient(context)
     val request = PutDataMapRequest.create("/data").run {
         val allData = db.getAll()
@@ -179,9 +181,9 @@ fun transferData(db: DataDao, context: Context, successText:String, failText: St
         asPutDataRequest()
     }.setUrgent()
     dataClient.putDataItem(request).addOnSuccessListener {
-        Toast.makeText(context,successText,Toast.LENGTH_SHORT).show()
+        Toast.makeText(context,context.getString(R.string.transfer_success),Toast.LENGTH_SHORT).show()
     }.addOnFailureListener {
-        Toast.makeText(context,failText,Toast.LENGTH_SHORT).show()
+        Toast.makeText(context,context.getString(R.string.transfer_fail),Toast.LENGTH_SHORT).show()
     }
 
 }
@@ -192,8 +194,6 @@ fun MainApp(db: DataDao, modifier: Modifier = Modifier) {
     val selectedUri = remember{ mutableStateOf<Uri?>(null)}
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri: Uri?->selectedUri.value = uri}
     val context = LocalContext.current
-    val transferSuccessText = stringResource(R.string.transfer_success)
-    val transferFailText = stringResource(R.string.transfer_fail)
     Column(
         modifier = modifier
     ){
@@ -204,10 +204,10 @@ fun MainApp(db: DataDao, modifier: Modifier = Modifier) {
             },
             modifier = Modifier.padding(top = 10.dp, start = 10.dp)
         ){ Text(stringResource(R.string.import_timetable))}
-        Button(
-            onClick = {transferData(db,context,transferSuccessText,transferFailText)},
-            modifier = Modifier.padding(top = 10.dp, start = 10.dp)
-        ){ Text(stringResource(R.string.transfer_to_watch))}
+//        Button(
+//            onClick = {transferData(db,context,transferSuccessText,transferFailText)},
+//            modifier = Modifier.padding(top = 10.dp, start = 10.dp)
+//        ){ Text(stringResource(R.string.transfer_to_watch))}
     }
 
     if(showDialog.value){
@@ -224,7 +224,7 @@ fun MainApp(db: DataDao, modifier: Modifier = Modifier) {
         )
     }
     selectedUri.value?.let {uri->
-        parseSaveCSES(db,uri,context.contentResolver)
+        parseSaveCSES(db,uri,context)
         Toast.makeText(context,stringResource(R.string.import_success),Toast.LENGTH_SHORT).show()
     }
 

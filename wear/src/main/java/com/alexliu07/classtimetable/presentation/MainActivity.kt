@@ -6,6 +6,7 @@
 package com.alexliu07.classtimetable.presentation
 
 import android.R.style
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +57,8 @@ import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material3.Card
+import androidx.wear.compose.material3.CardColors
+import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
@@ -67,6 +71,7 @@ import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import java.time.LocalTime
+import java.util.Calendar
 
 class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
 
@@ -92,7 +97,7 @@ class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
                     val dataDao = db.dataDao()
                     // 处理接收到的数据
                     val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
-                    importData(dataDao,dataMap)
+                    importData(dataDao,dataMap,this)
                     Log.i("data","changed")
                 }
             } else if (event.type == DataEvent.TYPE_DELETED) {
@@ -186,7 +191,7 @@ fun WearApp(db: DataDao) {
     }
 }
 
-fun importData(db: DataDao,data: DataMap){
+fun importData(db: DataDao,data: DataMap,context: Context){
     emptyDB(db)
     val dataList = data.getDataMapArrayList("data")
     if (dataList != null) {
@@ -199,6 +204,7 @@ fun importData(db: DataDao,data: DataMap){
             db.insert(tempData)
         }
     }
+    Toast.makeText(context,context.getString(string.transfer_success),Toast.LENGTH_SHORT).show()
 }
 
 @Composable
@@ -224,8 +230,8 @@ fun loadData(db: DataDao):SnapshotStateList<SnapshotStateList<ListItem>>{
 @Composable
 fun ClassDisplay(db: DataDao,pageData:SnapshotStateList<SnapshotStateList<ListItem>>){
     val pageCount = 7
-    val pagerState = rememberPagerState { pageCount }
-
+    val pagerState = rememberPagerState((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)+6)%8){pageCount}
+    Log.i("day",Calendar.getInstance().get(Calendar.DAY_OF_WEEK).toString())
     Column( // Use a Column to stack Pager and Indicators
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -241,7 +247,7 @@ fun ClassDisplay(db: DataDao,pageData:SnapshotStateList<SnapshotStateList<ListIt
         // Page Indicators
         Row(
             Modifier
-                .height(20.dp)
+                .height(10.dp)
                 .fillMaxWidth()
                 .padding(bottom = 4.dp), // Add some padding at the bottom
             horizontalArrangement = Arrangement.Center,
@@ -306,7 +312,11 @@ fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
                     onClick = { /* Do something */ },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colors.surface,
+                        titleColor = MaterialTheme.colors.primary
+                    )
                 ) {
                     Text(
                         text = item.time,
