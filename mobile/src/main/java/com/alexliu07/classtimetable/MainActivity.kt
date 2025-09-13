@@ -170,6 +170,7 @@ fun parseSaveCSES(db: DataDao,uri: Uri,context: Context,lifecycleScope: Lifecycl
 
 fun transferData(db: DataDao, context: Context,lifecycleScope: LifecycleCoroutineScope){
     lifecycleScope.launch {
+        DataHub.deleteData(context,"/import")
         PutDataMapRequest.create("/import").setUrgent().let { request ->
             request.dataMap.run {
                 val allData = db.getAll()

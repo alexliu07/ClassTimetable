@@ -13,4 +13,6 @@
     <string name="transfer_success">传输成功，请重启APP以刷新数据</string>
     <string name="no_timetable">暂无课程表</string>
     <string name="please_import">请在手机上导入</string>
+    <string name="no_schedule">无课程</string>
+    <string name="have_a_rest">休息一下吧</string>
 </resources>

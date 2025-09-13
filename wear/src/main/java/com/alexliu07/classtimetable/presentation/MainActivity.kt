@@ -16,25 +16,15 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -52,12 +42,17 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.foundation.pager.HorizontalPager
+import androidx.wear.compose.foundation.pager.rememberPagerState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
+import androidx.wear.compose.material3.HorizontalPagerScaffold
 import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.PagerScaffoldDefaults
 import androidx.wear.compose.material3.Text
 import com.alexliu07.classtimetable.R.string
 import com.alexliu07.classtimetable.presentation.theme.ClassTimetableTheme
@@ -169,22 +164,6 @@ fun emptyDB(db: DataDao){
     db.resetPrimaryKey()
 }
 
-@Composable
-fun WearApp(db: DataDao) {
-    Log.i("page","wearapp run")
-    val pageData = loadData(db)
-    ClassTimetableTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
-        ) {
-            ClassDisplay(db,pageData)
-        }
-    }
-}
-
 fun importData(db: DataDao,data: DataMap,context: Context){
     emptyDB(db)
     val dataList = data.getDataMapArrayList("data")
@@ -214,6 +193,7 @@ fun loadData(db: DataDao):SnapshotStateList<SnapshotStateList<ListItem>>{
         for(i in 0..6){
             val tempData = db.getData(i).sortedBy { it.startTime }
             val tempList = remember { mutableStateListOf<ListItem>() }
+            if(tempData.isEmpty())tempList.add(ListItem(0,stringResource(string.have_a_rest),stringResource(string.no_schedule)))
             for(data in tempData)tempList.add(ListItem(data.id!!,"${data.startTime} - ${data.endTime}",data.subject))
             pageData.add(tempList)
         }
@@ -222,67 +202,47 @@ fun loadData(db: DataDao):SnapshotStateList<SnapshotStateList<ListItem>>{
 }
 
 @Composable
+fun WearApp(db: DataDao) {
+    Log.i("page","wearapp run")
+    val pageData = loadData(db)
+    ClassTimetableTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colors.background),
+            contentAlignment = Alignment.Center
+        ) {
+            ClassDisplay(db,pageData)
+        }
+    }
+}
+
+@Composable
 fun ClassDisplay(db: DataDao,pageData:SnapshotStateList<SnapshotStateList<ListItem>>){
     val pageCount = 7
     val pagerState = rememberPagerState((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)+6)%8){pageCount}
-    Log.i("day",Calendar.getInstance().get(Calendar.DAY_OF_WEEK).toString())
-    Column( // Use a Column to stack Pager and Indicators
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    HorizontalPagerScaffold(pagerState = pagerState) {
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+            flingBehavior = PagerScaffoldDefaults.snapWithSpringFlingBehavior(state = pagerState),
+            rotaryScrollableBehavior = null
         ) { page ->
             PageContent(pageNumber = page, pageContent = pageData[page])
-        }
-        // Page Indicators
-        Row(
-            Modifier
-                .height(10.dp)
-                .fillMaxWidth()
-                .padding(bottom = 4.dp), // Add some padding at the bottom
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(pageCount) { iteration ->
-                val color =
-                    if (pagerState.currentPage == iteration) MaterialTheme.colors.primary else Color.LightGray
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 2.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .size(6.dp) // Size of the dot
-                )
-            }
         }
     }
 }
 
 @Composable
 fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
-    Log.i("page","$pageNumber $pageContent")
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(4.dp),
         contentAlignment = Alignment.Center
     ){
         val listState = rememberScalingLazyListState()
         ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(
-                top = 8.dp,
-                bottom = 8.dp,
-                start = 8.dp,
-                end = 8.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState)
         ) {
             item{
                 ListHeader (

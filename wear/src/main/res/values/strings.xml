@@ -16,4 +16,6 @@
     <string name="transfer_success">Transfer Successful, please restart the app</string>
     <string name="no_timetable">No schedule yet</string>
     <string name="please_import">Please import from your phone</string>
+    <string name="no_schedule">Blank schedule</string>
+    <string name="have_a_rest">Have a rest</string>
 </resources>
