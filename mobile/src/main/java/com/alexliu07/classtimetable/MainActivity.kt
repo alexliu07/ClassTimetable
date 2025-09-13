@@ -1,6 +1,5 @@
 package com.alexliu07.classtimetable
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
@@ -29,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
@@ -41,9 +41,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.alexliu07.classtimetable.ui.theme.ClassTimetableTheme
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.PutDataMapRequest
-import com.google.android.gms.wearable.Wearable
+import kotlinx.coroutines.launch
+import me.chenhe.lib.wearmsger.DataHub
 import org.yaml.snakeyaml.Yaml
 import java.time.LocalTime
 
@@ -75,7 +77,8 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     MainApp(
                         db = dataDao,
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier.padding(innerPadding),
+                        lifecycleScope = lifecycleScope
                     )
                 }
             }
@@ -136,7 +139,7 @@ fun emptyDB(db: DataDao){
     db.resetPrimaryKey()
 }
 
-fun parseSaveCSES(db: DataDao,uri: Uri,context: Context){
+fun parseSaveCSES(db: DataDao,uri: Uri,context: Context,lifecycleScope: LifecycleCoroutineScope){
     val contentResolver = context.contentResolver
     val inputStream = contentResolver.openInputStream(uri)
     val yaml = Yaml()
@@ -160,36 +163,35 @@ fun parseSaveCSES(db: DataDao,uri: Uri,context: Context){
             db.insert(classData)
         }
     }
-    transferData(db,context)
+    transferData(db,context,lifecycleScope)
+    Toast.makeText(context,context.getString(R.string.import_success),Toast.LENGTH_SHORT).show()
 //    for (i in 0..6)timetable[i].sortBy({it.startTime})
 }
 
-fun transferData(db: DataDao, context: Context){
-    val dataClient = Wearable.getDataClient(context)
-    val request = PutDataMapRequest.create("/data").run {
-        val allData = db.getAll()
-        val dataMaps = arrayListOf<DataMap>()
-        for(data in allData){
-            val tempDataMap = DataMap()
-            tempDataMap.putInt("day",data.day)
-            tempDataMap.putString("subject",data.subject)
-            tempDataMap.putString("startTime",data.startTime.toString())
-            tempDataMap.putString("endTime",data.endTime.toString())
-            dataMaps.add(tempDataMap)
+fun transferData(db: DataDao, context: Context,lifecycleScope: LifecycleCoroutineScope){
+    lifecycleScope.launch {
+        PutDataMapRequest.create("/import").setUrgent().let { request ->
+            request.dataMap.run {
+                val allData = db.getAll()
+                val dataMaps = arrayListOf<DataMap>()
+                for(data in allData){
+                    val tempDataMap = DataMap()
+                    tempDataMap.putInt("day",data.day)
+                    tempDataMap.putString("subject",data.subject)
+                    tempDataMap.putString("startTime",data.startTime.toString())
+                    tempDataMap.putString("endTime",data.endTime.toString())
+                    dataMaps.add(tempDataMap)
+                }
+                putDataMapArrayList("data",dataMaps)
+            }
+            DataHub.putData(context,request)
         }
-        dataMap.putDataMapArrayList("data",dataMaps)
-        asPutDataRequest()
-    }.setUrgent()
-    dataClient.putDataItem(request).addOnSuccessListener {
-        Toast.makeText(context,context.getString(R.string.transfer_success),Toast.LENGTH_SHORT).show()
-    }.addOnFailureListener {
-        Toast.makeText(context,context.getString(R.string.transfer_fail),Toast.LENGTH_SHORT).show()
     }
-
 }
 
+
 @Composable
-fun MainApp(db: DataDao, modifier: Modifier = Modifier) {
+fun MainApp(db: DataDao, modifier: Modifier = Modifier,lifecycleScope: LifecycleCoroutineScope) {
     val showDialog = remember{ mutableStateOf(false)}
     val selectedUri = remember{ mutableStateOf<Uri?>(null)}
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri: Uri?->selectedUri.value = uri}
@@ -204,10 +206,6 @@ fun MainApp(db: DataDao, modifier: Modifier = Modifier) {
             },
             modifier = Modifier.padding(top = 10.dp, start = 10.dp)
         ){ Text(stringResource(R.string.import_timetable))}
-//        Button(
-//            onClick = {transferData(db,context,transferSuccessText,transferFailText)},
-//            modifier = Modifier.padding(top = 10.dp, start = 10.dp)
-//        ){ Text(stringResource(R.string.transfer_to_watch))}
     }
 
     if(showDialog.value){
@@ -224,8 +222,8 @@ fun MainApp(db: DataDao, modifier: Modifier = Modifier) {
         )
     }
     selectedUri.value?.let {uri->
-        parseSaveCSES(db,uri,context)
-        Toast.makeText(context,stringResource(R.string.import_success),Toast.LENGTH_SHORT).show()
+        parseSaveCSES(db,uri,context,lifecycleScope)
+        selectedUri.value = null
     }
 
 }

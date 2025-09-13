@@ -7,6 +7,7 @@ package com.alexliu07.classtimetable.presentation
 
 import android.R.style
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -34,10 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -57,66 +56,61 @@ import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material3.Card
-import androidx.wear.compose.material3.CardColors
 import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.Text
-import androidx.wear.tooling.preview.devices.WearDevices
 import com.alexliu07.classtimetable.R.string
 import com.alexliu07.classtimetable.presentation.theme.ClassTimetableTheme
-import com.google.android.gms.wearable.DataClient
-import com.google.android.gms.wearable.DataEvent
-import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
-import com.google.android.gms.wearable.Wearable
+import me.chenhe.lib.wearmsger.DataHub
+import me.chenhe.lib.wearmsger.listener.DataListener
 import java.time.LocalTime
 import java.util.Calendar
 
-class MainActivity : ComponentActivity() , DataClient.OnDataChangedListener {
+class MainActivity : ComponentActivity(){
+
+    lateinit var db: AppDatabase
+    lateinit var dataDao: DataDao
+    lateinit var context: Context
 
     override fun onResume() {
         super.onResume()
+        DataHub.addDataListener(this,dataListener)
         Log.i("listener","data listener added")
-        Wearable.getDataClient(this).addListener(this)
     }
 
     override fun onPause() {
         super.onPause()
+        DataHub.removeDataListener(this,dataListener)
         Log.i("listener","data listener removed")
-        Wearable.getDataClient(this).removeListener(this)
-    }
-
-    override fun onDataChanged(dataEvents: DataEventBuffer) {
-        Log.i("listener","event get")
-        for (event in dataEvents) {
-            if (event.type == DataEvent.TYPE_CHANGED) {
-                val dataItem = event.dataItem
-                if (dataItem.uri.path == "/data") {
-                    val db = Room.databaseBuilder(applicationContext, AppDatabase::class.java,"data").allowMainThreadQueries().build()
-                    val dataDao = db.dataDao()
-                    // 处理接收到的数据
-                    val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
-                    importData(dataDao,dataMap,this)
-                    Log.i("data","changed")
-                }
-            } else if (event.type == DataEvent.TYPE_DELETED) {
-                // 处理数据项被删除
-                Log.i("data","deleted")
-            }
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setTheme(style.Theme_DeviceDefault)
-        val db = Room.databaseBuilder(applicationContext, AppDatabase::class.java,"data").allowMainThreadQueries().build()
-        val dataDao = db.dataDao()
+        db = Room.databaseBuilder(applicationContext, AppDatabase::class.java,"data").allowMainThreadQueries().build()
+        dataDao = db.dataDao()
+        context = this
         setContent {
             WearApp(dataDao)
         }
+    }
 
+    private val dataListener = object : DataListener {
+        override fun onDataChanged(dataMapItem: DataMapItem) {
+            dataMapItem.run {
+                if (uri.path == "/import") {
+                    importData(dataDao, dataMap,context)
+                    Log.i("data","changed")
+                }
+            }
+        }
+
+        override fun onDataDeleted(uri: Uri) {
+            Log.i("data","deleted")
+        }
     }
 }
 
