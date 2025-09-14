@@ -16,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,11 +49,14 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.foundation.pager.HorizontalPager
 import androidx.wear.compose.foundation.pager.rememberPagerState
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.HorizontalPagerScaffold
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.PagerScaffoldDefaults
+import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.Text
 import com.alexliu07.classtimetable.R.string
 import com.alexliu07.classtimetable.presentation.theme.ClassTimetableTheme
@@ -206,11 +210,10 @@ fun WearApp(db: DataDao) {
     Log.i("page","wearapp run")
     val pageData = loadData(db)
     ClassTimetableTheme {
-        Box(
+        AppScaffold(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
         ) {
             ClassDisplay(db,pageData)
         }
@@ -220,7 +223,7 @@ fun WearApp(db: DataDao) {
 @Composable
 fun ClassDisplay(db: DataDao,pageData:SnapshotStateList<SnapshotStateList<ListItem>>){
     val pageCount = 7
-    val pagerState = rememberPagerState((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)+6)%8){pageCount}
+    val pagerState = rememberPagerState((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)+5)%7){pageCount}
     HorizontalPagerScaffold(pagerState = pagerState) {
         HorizontalPager(
             state = pagerState,
@@ -234,21 +237,20 @@ fun ClassDisplay(db: DataDao,pageData:SnapshotStateList<SnapshotStateList<ListIt
 
 @Composable
 fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
-    Box(
-        contentAlignment = Alignment.Center
-    ){
-        val listState = rememberScalingLazyListState()
+    val listState = rememberScalingLazyListState()
+    ScreenScaffold (
+        scrollState = listState,
+        scrollIndicator = { ScrollIndicator(state = listState) }
+    ) {
         ScalingLazyColumn(
             state = listState,
             verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState)
         ) {
-            item{
-                ListHeader (
-                    modifier = Modifier.fillMaxWidth(),
-                ){
-                    val dayText = when(pageNumber){
+            item {
+                ListHeader(modifier = Modifier.fillMaxWidth()) {
+                    val dayText = when (pageNumber) {
                         0 -> stringResource(id = string.day0)
                         1 -> stringResource(id = string.day1)
                         2 -> stringResource(id = string.day2)
@@ -258,10 +260,10 @@ fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
                         6 -> stringResource(id = string.day6)
                         else -> ""
                     }
-                    Text(text=dayText)
+                    Text(text = dayText)
                 }
             }
-            items(pageContent){item->
+            items(pageContent) { item ->
                 Card(
                     onClick = { /* Do something */ },
                     modifier = Modifier
