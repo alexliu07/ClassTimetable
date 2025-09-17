@@ -6,7 +6,7 @@
 package com.alexliu07.classtimetable.presentation
 
 import android.R.style
-import android.content.Context
+import android.content.ComponentName
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -15,8 +15,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,22 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.room.ColumnInfo
-import androidx.room.Dao
-import androidx.room.Database
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
 import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
-import androidx.room.TypeConverters
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
@@ -52,13 +41,20 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
+import androidx.wear.compose.material3.HorizontalPageIndicator
 import androidx.wear.compose.material3.HorizontalPagerScaffold
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.PagerScaffoldDefaults
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.Text
+import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
+import com.alexliu07.classtimetable.AppDatabase
+import com.alexliu07.classtimetable.Data
+import com.alexliu07.classtimetable.DataDao
 import com.alexliu07.classtimetable.R.string
+import com.alexliu07.classtimetable.complication.MainComplicationService
+import com.alexliu07.classtimetable.emptyDB
 import com.alexliu07.classtimetable.presentation.theme.ClassTimetableTheme
 import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
@@ -67,11 +63,12 @@ import me.chenhe.lib.wearmsger.listener.DataListener
 import java.time.LocalTime
 import java.util.Calendar
 
+
 class MainActivity : ComponentActivity(){
 
     lateinit var db: AppDatabase
     lateinit var dataDao: DataDao
-    lateinit var context: Context
+    lateinit var complicationUpdateRequester: ComplicationDataSourceUpdateRequester
 
     override fun onResume() {
         super.onResume()
@@ -91,9 +88,10 @@ class MainActivity : ComponentActivity(){
         setTheme(style.Theme_DeviceDefault)
         db = Room.databaseBuilder(applicationContext, AppDatabase::class.java,"data").allowMainThreadQueries().build()
         dataDao = db.dataDao()
-        context = this
+        val componentName = ComponentName(this, MainComplicationService::class.java)
+        complicationUpdateRequester = ComplicationDataSourceUpdateRequester.create(this,componentName)
         setContent {
-            WearApp(dataDao)
+            WearApp()
         }
     }
 
@@ -101,7 +99,7 @@ class MainActivity : ComponentActivity(){
         override fun onDataChanged(dataMapItem: DataMapItem) {
             dataMapItem.run {
                 if (uri.path == "/import") {
-                    importData(dataDao, dataMap,context)
+                    importData(dataMap)
                     Log.i("data","changed")
                 }
             }
@@ -111,180 +109,131 @@ class MainActivity : ComponentActivity(){
             Log.i("data","deleted")
         }
     }
-}
 
-data class ListItem(val id: Int, val time: String, val subject: String)
-
-@Entity
-data class Data(
-    @PrimaryKey(autoGenerate = true) val id: Int? = null,
-    @ColumnInfo val day: Int,
-    @ColumnInfo val subject: String,
-    @ColumnInfo val startTime: LocalTime,
-    @ColumnInfo val endTime: LocalTime
-)
-
-class Converters{
-    @TypeConverter
-    fun fromLocalTime(time: LocalTime): String{
-        return time.toString()
-    }
-
-    @TypeConverter
-    fun toLocalTime(time: String): LocalTime{
-        return LocalTime.parse(time)
-    }
-}
-
-@Dao
-interface DataDao{
-    @Insert
-    fun insert(data: Data)
-
-    @Query("SELECT * FROM data WHERE day = :day")
-    fun getData(day: Int): List<Data>
-
-    @Query("SELECT * FROM data")
-    fun getAll(): List<Data>
-
-    @Query("DELETE FROM data")
-    fun empty()
-
-    @Query("DELETE FROM sqlite_sequence")
-    fun resetPrimaryKey()
-
-    @Query("SELECT (SELECT COUNT(*) FROM data) == 0")
-    fun isEmpty(): Boolean
-}
-
-@Database(entities = [Data::class], version = 1)
-@TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase(){
-    abstract fun dataDao(): DataDao
-}
-
-fun emptyDB(db: DataDao){
-    db.empty()
-    db.resetPrimaryKey()
-}
-
-fun importData(db: DataDao,data: DataMap,context: Context){
-    emptyDB(db)
-    val dataList = data.getDataMapArrayList("data")
-    if (dataList != null) {
-        for(item in dataList){
-            val day = item.getInt("day")
-            val subject = item.getString("subject")
-            val startTime = LocalTime.parse(item.getString("startTime"))
-            val endTime = LocalTime.parse(item.getString("endTime"))
-            val tempData = Data(day=day, subject = subject!!, startTime = startTime, endTime = endTime)
-            db.insert(tempData)
+    @Composable
+    fun WearApp() {
+        Log.i("page","wearapp run")
+        val pageData = loadData()
+        ClassTimetableTheme {
+            AppScaffold(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colors.background),
+            ) {
+                ClassDisplay(pageData)
+            }
         }
     }
-    Toast.makeText(context,context.getString(string.transfer_success),Toast.LENGTH_SHORT).show()
-}
 
-@Composable
-fun loadData(db: DataDao):SnapshotStateList<SnapshotStateList<ListItem>>{
-    val pageData = remember { mutableStateListOf<SnapshotStateList<ListItem>>() }
-    if(db.isEmpty()){
-        for(i in 0..6){
-            val tempList = remember { mutableStateListOf<ListItem>() }
-            tempList.add(ListItem(0,stringResource(string.no_timetable),stringResource(string.please_import)))
-            pageData.add(tempList)
-        }
-    }else{
-        for(i in 0..6){
-            val tempData = db.getData(i).sortedBy { it.startTime }
-            val tempList = remember { mutableStateListOf<ListItem>() }
-            if(tempData.isEmpty())tempList.add(ListItem(0,stringResource(string.have_a_rest),stringResource(string.no_schedule)))
-            for(data in tempData)tempList.add(ListItem(data.id!!,"${data.startTime} - ${data.endTime}",data.subject))
-            pageData.add(tempList)
-        }
-    }
-    return pageData
-}
-
-@Composable
-fun WearApp(db: DataDao) {
-    Log.i("page","wearapp run")
-    val pageData = loadData(db)
-    ClassTimetableTheme {
-        AppScaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
+    @Composable
+    fun ClassDisplay(pageData:SnapshotStateList<SnapshotStateList<ListItem>>){
+        val pageCount = 7
+        val pagerState = rememberPagerState((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)+5)%7){pageCount}
+        HorizontalPagerScaffold(
+            pagerState = pagerState,
+            pageIndicator = { HorizontalPageIndicator(pagerState, selectedColor = MaterialTheme.colors.primary, backgroundColor = Color(0x00,0x00,0x00,0x00)) }
         ) {
-            ClassDisplay(db,pageData)
+            HorizontalPager(
+                state = pagerState,
+                flingBehavior = PagerScaffoldDefaults.snapWithSpringFlingBehavior(state = pagerState),
+                rotaryScrollableBehavior = null
+            ) { page ->
+                PageContent(pageNumber = page, pageContent = pageData[page])
+            }
         }
     }
-}
 
-@Composable
-fun ClassDisplay(db: DataDao,pageData:SnapshotStateList<SnapshotStateList<ListItem>>){
-    val pageCount = 7
-    val pagerState = rememberPagerState((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)+5)%7){pageCount}
-    HorizontalPagerScaffold(pagerState = pagerState) {
-        HorizontalPager(
-            state = pagerState,
-            flingBehavior = PagerScaffoldDefaults.snapWithSpringFlingBehavior(state = pagerState),
-            rotaryScrollableBehavior = null
-        ) { page ->
-            PageContent(pageNumber = page, pageContent = pageData[page])
-        }
-    }
-}
-
-@Composable
-fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
-    val listState = rememberScalingLazyListState()
-    ScreenScaffold (
-        scrollState = listState,
-        scrollIndicator = { ScrollIndicator(state = listState) }
-    ) {
-        ScalingLazyColumn(
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState)
+    @Composable
+    fun PageContent(pageNumber:Int,pageContent: SnapshotStateList<ListItem>){
+        val listState = rememberScalingLazyListState()
+        ScreenScaffold (
+            scrollState = listState,
+            scrollIndicator = { ScrollIndicator(state = listState) }
         ) {
-            item {
-                ListHeader(modifier = Modifier.fillMaxWidth()) {
-                    val dayText = when (pageNumber) {
-                        0 -> stringResource(id = string.day0)
-                        1 -> stringResource(id = string.day1)
-                        2 -> stringResource(id = string.day2)
-                        3 -> stringResource(id = string.day3)
-                        4 -> stringResource(id = string.day4)
-                        5 -> stringResource(id = string.day5)
-                        6 -> stringResource(id = string.day6)
-                        else -> ""
+            ScalingLazyColumn(
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState)
+            ) {
+                item {
+                    ListHeader(modifier = Modifier.fillMaxWidth()) {
+                        val dayText = when (pageNumber) {
+                            0 -> stringResource(id = string.day0)
+                            1 -> stringResource(id = string.day1)
+                            2 -> stringResource(id = string.day2)
+                            3 -> stringResource(id = string.day3)
+                            4 -> stringResource(id = string.day4)
+                            5 -> stringResource(id = string.day5)
+                            6 -> stringResource(id = string.day6)
+                            else -> ""
+                        }
+                        Text(text = dayText)
                     }
-                    Text(text = dayText)
                 }
-            }
-            items(pageContent) { item ->
-                Card(
-                    onClick = { /* Do something */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colors.surface,
-                        titleColor = MaterialTheme.colors.primary
-                    )
-                ) {
-                    Text(
-                        text = item.time,
-                        fontSize = 10.sp
-                    )
-                    Text(
-                        text = item.subject,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                items(pageContent) { item ->
+                    Card(
+                        onClick = { /* Do something */ },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colors.surface,
+                            titleColor = MaterialTheme.colors.primary
+                        )
+                    ) {
+                        Text(
+                            text = item.time,
+                            fontSize = 10.sp
+                        )
+                        Text(
+                            text = item.subject,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
     }
+
+    data class ListItem(val id: Int, val time: String, val subject: String)
+
+    fun importData(data: DataMap){
+        emptyDB(dataDao)
+        val dataList = data.getDataMapArrayList("data")
+        if (dataList != null) {
+            for(item in dataList){
+                val day = item.getInt("day")
+                val subject = item.getString("subject")
+                val startTime = LocalTime.parse(item.getString("startTime"))
+                val endTime = LocalTime.parse(item.getString("endTime"))
+                val tempData = Data(day = day, subject = subject!!, startTime = startTime, endTime = endTime)
+                dataDao.insert(tempData)
+            }
+        }
+        Toast.makeText(this,this.getString(string.transfer_success),Toast.LENGTH_SHORT).show()
+    }
+
+    @Composable
+    fun loadData():SnapshotStateList<SnapshotStateList<ListItem>>{
+        val pageData = remember { mutableStateListOf<SnapshotStateList<ListItem>>() }
+        if(dataDao.isEmpty()){
+            for(i in 0..6){
+                val tempList = remember { mutableStateListOf<ListItem>() }
+                tempList.add(ListItem(0,stringResource(string.no_timetable),stringResource(string.please_import)))
+                pageData.add(tempList)
+            }
+        }else{
+            for(i in 0..6){
+                val tempData = dataDao.getData(i).sortedBy { it.startTime }
+                val tempList = remember { mutableStateListOf<ListItem>() }
+                if(tempData.isEmpty())tempList.add(ListItem(0,stringResource(string.have_a_rest),stringResource(string.no_schedule)))
+                for(data in tempData)tempList.add(ListItem(data.id!!,"${data.startTime} - ${data.endTime}",data.subject))
+                pageData.add(tempList)
+            }
+        }
+        return pageData
+    }
 }
+

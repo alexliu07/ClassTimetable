@@ -18,4 +18,7 @@
     <string name="please_import">Please import from your phone</string>
     <string name="no_schedule">Blank schedule</string>
     <string name="have_a_rest">Have a rest</string>
+    <string name="complication_no_schedule">Free</string>
+    <string name="complication_error">Error</string>
+    <string name="complication_example">Chinese</string>
 </resources>

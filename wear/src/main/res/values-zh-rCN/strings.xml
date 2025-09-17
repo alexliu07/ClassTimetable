@@ -15,4 +15,7 @@
     <string name="please_import">请在手机上导入</string>
     <string name="no_schedule">无课程</string>
     <string name="have_a_rest">休息一下吧</string>
+    <string name="complication_no_schedule">无</string>
+    <string name="complication_error">错误</string>
+    <string name="complication_example">语文</string>
 </resources>
