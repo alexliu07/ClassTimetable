@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">腕上课表</string>
     <string name="tile_label">示例卡片</string>
-    <string name="complication_label">示例复杂功能</string>
+    <string name="complication_label">当前/接下来的课程</string>
     <string name="day0">星期一</string>
     <string name="day1">星期二</string>
     <string name="day2">星期三</string>
