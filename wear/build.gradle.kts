@@ -13,8 +13,8 @@ android {
         applicationId = "com.alexliu07.classtimetable"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.3"
+        versionCode = 20
+        versionName = "2.0"
 
     }
 
@@ -53,6 +53,7 @@ dependencies {
     ksp("androidx.room:room-compiler:2.7.2")
     implementation("me.chenhe:wearmsger:2.0.2")
     implementation("com.google.android.gms:play-services-wearable:18.0.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.4")
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.tiles)

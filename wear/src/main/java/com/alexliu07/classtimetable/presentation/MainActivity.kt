@@ -6,7 +6,6 @@
 package com.alexliu07.classtimetable.presentation
 
 import android.R.style
-import android.content.ComponentName
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -53,7 +52,6 @@ import com.alexliu07.classtimetable.AppDatabase
 import com.alexliu07.classtimetable.Data
 import com.alexliu07.classtimetable.DataDao
 import com.alexliu07.classtimetable.R.string
-import com.alexliu07.classtimetable.complication.MainComplicationService
 import com.alexliu07.classtimetable.emptyDB
 import com.alexliu07.classtimetable.presentation.theme.ClassTimetableTheme
 import com.google.android.gms.wearable.DataMap
@@ -88,8 +86,6 @@ class MainActivity : ComponentActivity(){
         setTheme(style.Theme_DeviceDefault)
         db = Room.databaseBuilder(applicationContext, AppDatabase::class.java,"data").allowMainThreadQueries().build()
         dataDao = db.dataDao()
-        val componentName = ComponentName(this, MainComplicationService::class.java)
-        complicationUpdateRequester = ComplicationDataSourceUpdateRequester.create(this,componentName)
         setContent {
             WearApp()
         }
