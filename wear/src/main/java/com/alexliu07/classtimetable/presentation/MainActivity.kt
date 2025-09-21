@@ -47,7 +47,6 @@ import androidx.wear.compose.material3.PagerScaffoldDefaults
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.Text
-import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
 import com.alexliu07.classtimetable.AppDatabase
 import com.alexliu07.classtimetable.Data
 import com.alexliu07.classtimetable.DataDao
@@ -66,12 +65,12 @@ class MainActivity : ComponentActivity(){
 
     lateinit var db: AppDatabase
     lateinit var dataDao: DataDao
-    lateinit var complicationUpdateRequester: ComplicationDataSourceUpdateRequester
 
     override fun onResume() {
         super.onResume()
         DataHub.addDataListener(this,dataListener)
         Log.i("listener","data listener added")
+
     }
 
     override fun onPause() {
@@ -89,6 +88,12 @@ class MainActivity : ComponentActivity(){
         setContent {
             WearApp()
         }
+    }
+
+    override fun finish() {
+        Log.i("database","database closed")
+        db.close()
+        super.finish()
     }
 
     private val dataListener = object : DataListener {
@@ -127,7 +132,7 @@ class MainActivity : ComponentActivity(){
         val pagerState = rememberPagerState((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)+5)%7){pageCount}
         HorizontalPagerScaffold(
             pagerState = pagerState,
-            pageIndicator = { HorizontalPageIndicator(pagerState, selectedColor = MaterialTheme.colors.primary, backgroundColor = Color(0x00,0x00,0x00,0x00)) }
+            pageIndicator = { HorizontalPageIndicator(pagerState, backgroundColor = Color(0x00,0x00,0x00,0x00)) }
         ) {
             HorizontalPager(
                 state = pagerState,

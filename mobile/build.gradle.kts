@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.alexliu07.classtimetable"
-        minSdk = 29
+        minSdk = 30
         targetSdk = 36
         versionCode = 20
         versionName = "2.0"
